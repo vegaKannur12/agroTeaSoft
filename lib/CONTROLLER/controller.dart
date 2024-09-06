@@ -53,6 +53,8 @@ class Controller extends ChangeNotifier {
   List<Map<String, dynamic>> routeList = [];
   List<Map<String, dynamic>> spplierList = [];
   List<Map<String, dynamic>> userList = [];
+  List<Map<String, dynamic>> importtransMasterList = [];
+  List<Map<String, dynamic>> importtransDetailsList = [];
   List<Map<String, dynamic>> prodList = [];
   List<Map<String, dynamic>> transdetailsList = [];
   List<Map<String, dynamic>> transmasterList = [];
@@ -151,24 +153,43 @@ class Controller extends ChangeNotifier {
     print("final LIST=---------------$finalSaveList");
     print(
         "final MAP=---------------$finalSaveMap"); //  //  save-api format of transaction
-    
-    finalSavetoapi(finalSaveMap);
+
+    // finalSavetoapi(finalSaveMap);
+
     transdetailsList.clear();
   }
+
+  importFinal() async {
+    Map<String, dynamic> matermap = {};
+    List<Map<String, dynamic>> detailsList = [];
+    for (var i = 0; i < importtransMasterList.length; i++) {
+      int transid = importtransMasterList[i]["tid"];
+      print("transddd==$transid");
+      matermap = Map.from(importtransMasterList[i]);
+      // matermap = importtransMasterList[i];
+      for (var j = 0; j < importtransDetailsList.length; j++) {
+        if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
+            "AB$transid") {
+          detailsList.add(importtransDetailsList[j]);
+        }
+      }
+      matermap["details"] = detailsList;
+      notifyListeners();
+      print("mastreMap====$matermap");
+    }
+  }
+
   finalSavetoapi(Map<String, dynamic> mapp) async {
-     var mapBody = jsonEncode(mapp);
-     Uri url = Uri.parse("http://192.168.18.168:7000/api/Trans_Save");
-     Map body = {'json_arr': mapBody};
-
-      http.Response response = await http.post(
-        url,
-        body: body,
-      );
-
-      print("save body ${body}");
-      var map = jsonDecode(response.body);
-      print("save Map--> $map");
-
+    var mapBody = jsonEncode(mapp);
+    Uri url = Uri.parse("http://192.168.18.168:7000/api/Trans_Save");
+    Map body = {'json_arr': mapBody};
+    http.Response response = await http.post(
+      url,
+      body: body,
+    );
+    print("save body ${body}");
+    var map = jsonDecode(response.body);
+    print("save Map--> $map");
   }
 
   gettransmasterfromdb(int tid) {}
@@ -350,6 +371,40 @@ class Controller extends ChangeNotifier {
         userList.add(item);
       }
       print("added to userList----${userList}");
+      notifyListeners();
+    } catch (e) {
+      print(e);
+      return null;
+    }
+    notifyListeners();
+  }
+
+  gettransMastersfromDB() async {
+    try {
+      List trList = await TeaDB.instance.gettransMasterfromDB();
+      // print("translist----${trList}");
+      importtransMasterList.clear();
+      for (var item in trList) {
+        importtransMasterList.add(item);
+      }
+      print("added to translist----${importtransMasterList}");
+      notifyListeners();
+    } catch (e) {
+      print(e);
+      return null;
+    }
+    notifyListeners();
+  }
+
+  gettransDetailsfromDB() async {
+    try {
+      List dtlList = await TeaDB.instance.gettransDetailsfromDB();
+      // print("transDETlist----${dtlList}");
+      importtransDetailsList.clear();
+      for (var item in dtlList) {
+        importtransDetailsList.add(item);
+      }
+      print("added to transDETlist----${importtransDetailsList}");
       notifyListeners();
     } catch (e) {
       print(e);

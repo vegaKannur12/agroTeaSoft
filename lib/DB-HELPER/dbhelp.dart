@@ -170,6 +170,14 @@ class TeaDB {
     print(res);
     return res;
   }
+   Future<int> insertTransDetail(TransDetailModel detail) async {
+    final db = await instance.database;
+   
+    var res=await db.insert('TransDetailsTable', detail.toMap());
+    print("trans det insert----todb---$res");
+    return res;
+
+  }
 
   Future inserttransDetails(TransDetailModel ddata) async {
     final db = await database;
@@ -224,6 +232,20 @@ class TeaDB {
     list = await db.rawQuery('SELECT * FROM UserMasterTable');
     return list;
   }
+  Future<List<Map<String, dynamic>>> gettransMasterfromDB() async {
+    List<Map<String, dynamic>> list = [];
+    Database db = await instance.database;
+    list = await db.rawQuery('SELECT tid, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable');
+    return list;
+  }
+    Future<List<Map<String, dynamic>>> gettransDetailsfromDB() async {
+    List<Map<String, dynamic>> list = [];
+    Database db = await instance.database;
+    list = await db.rawQuery('SELECT trans_det_mast_id,trans_det_prod_id,trans_det_col_qty, trans_det_dmg_qty,trans_det_net_qty,trans_det_unit,trans_det_rate_id,trans_det_value,trans_det_import_id,company_id,branch_id,log_user_id,user_session,log_date,status FROM TransDetailsTable');
+    return list;
+  }
+ 
+  
 
   upadteCommonQuery(String table, String fields, String condition) async {
     Database db = await instance.database;
@@ -235,10 +257,7 @@ class TeaDB {
     return res;
   }
 
-  Future<int> insertTransDetail(TransDetailModel detail) async {
-    final db = await instance.database;
-    return await db.insert('TransDetailsTable', detail.toMap());
-  }
+ 
 
   deleteFromTableCommonQuery(String table, String? condition) async {
     print("table--condition -$table---$condition");

@@ -563,136 +563,114 @@ class _CollectionPageState extends State<CollectionPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                    width: size.width * 0.4,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                        ),
-                        onPressed: () async {
-                          if (value.selectedsuplier != "" &&
-                              value.selectedsuplier.toString().toLowerCase() !=
-                                  "null" &&
-                              value.selectedsuplier.toString().isNotEmpty &&
-                              selectedRoute != null &&
-                              bagno_ctrl.text != "" &&
-                              wgt_ctrl.text != "") {
-                            int max = await TeaDB.instance.getMaxCommonQuery(
-                                'TransMasterTable', 'tid', " ");
-                            print("int max---- $max");
-                            print(
-                                "sel suppl----------------------${value.selectedsuplier.toString()}");
-                            // int transid = await randomNo();
-                            final prefs = await SharedPreferences.getInstance();
-                            int? supId = prefs.getInt("sel_accid");
-                            String? supName = prefs.getString("sel_accnm");
+                  width: size.width * 0.4,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                    ),
+                    onPressed: () async {
+                      if (value.selectedsuplier != "" &&
+                          value.selectedsuplier.toString().toLowerCase() !=
+                              "null" &&
+                          value.selectedsuplier.toString().isNotEmpty &&
+                          selectedRoute != null &&
+                          bagno_ctrl.text != "" &&
+                          wgt_ctrl.text != "") {
+                        int max = await TeaDB.instance
+                            .getMaxCommonQuery('TransMasterTable', 'tid', " ");
+                        print("int max---- $max");
+                        print(
+                            "sel suppl----------------------${value.selectedsuplier.toString()}");
+                        // int transid = await randomNo();
+                        final prefs = await SharedPreferences.getInstance();
+                        int? supId = prefs.getInt("sel_accid");
+                        String? supName = prefs.getString("sel_accnm");
 
-                            value.transMasterMap["trans_id"] = max;
-                            value.transMasterMap["trans_series"] = "AB";
-                            value.transMasterMap["trans_date"] = transactDate;
-                            value.transMasterMap["trans_party_id"] =
-                                supId.toString();
-                            value.transMasterMap["trans_party_name"] = supName;
-                            value.transMasterMap["trans_remark"] = "Remarks";
-                            value.transMasterMap["trans_bag_nos"] =
-                                bagno_ctrl.text.toString();
-                            value.transMasterMap["trans_bag_weights"] =
-                                wgt_ctrl.text.toString();
-                            // "25,21,65,985";
-                            value.transMasterMap["trans_import_id"] = "0";
-                            value.transMasterMap["company_id"] =
-                                c_id.toString();
-                            value.transMasterMap["branch_id"] =
-                                br_id.toString();
-                            value.transMasterMap["user_session"] = "245";
-                            value.transMasterMap["log_user_id"] =
-                                u_id.toString();
-                            value.transMasterMap["hidden_status"] = "0";
-                            value.transMasterMap["row_id"] = "0";
-                            value.transMasterMap["log_user_name"] =
-                                uname.toString();
-                            value.transMasterMap["log_date"] = transactDate;
-                            value.transMasterMap["status"] = 0;
-                            for (int i = 0; i < value.prodList.length; i++) {
-                              Map<String, dynamic> transDetailstempMap = {};
-                              int pid = value.prodList[i]['pid'];
-                              String product = value.prodList[i]
-                                  ['product']; // Get the product name
-                              String collected = value
-                                  .colected[i].text; // Get the collected value
-                              String damage =
-                                  value.damage[i].text; // Get the damage value
-                              String total =
-                                  value.total[i].text; // Get the total value
-                              print("pid---$pid");
-                              print("pName---$product");
-                              print(
-                                  "Coll----damg----totl---$collected---$damage---$total");
+                        value.transMasterMap["trans_id"] = max;
+                        value.transMasterMap["trans_series"] = "AB";
+                        value.transMasterMap["trans_date"] = transactDate;
+                        value.transMasterMap["trans_party_id"] =
+                            supId.toString();
+                        value.transMasterMap["trans_party_name"] = supName;
+                        value.transMasterMap["trans_remark"] = "Remarks";
+                        value.transMasterMap["trans_bag_nos"] =
+                            bagno_ctrl.text.toString();
+                        value.transMasterMap["trans_bag_weights"] =
+                            wgt_ctrl.text.toString();
+                        // "25,21,65,985";
+                        value.transMasterMap["trans_import_id"] = "0";
+                        value.transMasterMap["company_id"] = c_id.toString();
+                        value.transMasterMap["branch_id"] = br_id.toString();
+                        value.transMasterMap["user_session"] = "245";
+                        value.transMasterMap["log_user_id"] = u_id.toString();
+                        value.transMasterMap["hidden_status"] = "0";
+                        value.transMasterMap["row_id"] = "0";
+                        value.transMasterMap["log_user_name"] =
+                            uname.toString();
+                        value.transMasterMap["log_date"] = transactDate;
+                        value.transMasterMap["status"] = 0;
+                        for (int i = 0; i < value.prodList.length; i++) {
+                          Map<String, dynamic> transDetailstempMap = {};
+                          int pid = value.prodList[i]['pid'];
+                          String product = value.prodList[i]
+                              ['product']; // Get the product name
+                          String collected =
+                              value.colected[i].text; // Get the collected value
+                          String damage =
+                              value.damage[i].text; // Get the damage value
+                          String total =
+                              value.total[i].text; // Get the total value
+                          print("pid---$pid");
+                          print("pName---$product");
+                          print(
+                              "Coll----damg----totl---$collected---$damage---$total");
 
-                              transDetailstempMap["trans_det_mast_id"] =
-                                  "AB$max";
-                              transDetailstempMap["trans_det_prod_id"] = pid;
-                              transDetailstempMap["trans_det_col_qty"] =
-                                  collected;
-                              transDetailstempMap["trans_det_dmg_qty"] = damage;
-                              transDetailstempMap["trans_det_net_qty"] = total;
-                              transDetailstempMap["trans_det_unit"] = "KG";
-                              transDetailstempMap["trans_det_rate_id"] = "0";
-                              transDetailstempMap["trans_det_value"] = "0";
-                             
+                          transDetailstempMap["trans_det_mast_id"] = "AB$max";
+                          transDetailstempMap["trans_det_prod_id"] = pid;
+                          transDetailstempMap["trans_det_col_qty"] = collected;
+                          transDetailstempMap["trans_det_dmg_qty"] = damage;
+                          transDetailstempMap["trans_det_net_qty"] = total;
+                          transDetailstempMap["trans_det_unit"] = "KG";
+                          transDetailstempMap["trans_det_rate_id"] = "0";
+                          transDetailstempMap["trans_det_value"] = "0";
+                          transDetailstempMap["trans_det_import_id"] = "0";
+                          transDetailstempMap["company_id"] = c_id.toString();
+                          transDetailstempMap["branch_id"] = br_id.toString();
+                          transDetailstempMap["log_user_id"] = u_id.toString();
+                          transDetailstempMap["user_session"] = "245";
+                          transDetailstempMap["log_date"] = transactDate;
+                          transDetailstempMap["status"] = 0;
+                          // Create a ProductData object and add it to the list
+                          print(
+                              "transdetails Map -----$i---${transDetailstempMap}");
+                          value.transdetailsList.add(transDetailstempMap);
+                        }
+                        await Provider.of<Controller>(context, listen: false)
+                            .insertTransDetailstoDB(value.transdetailsList);
+                        print("transdetails List-${value.transdetailsList}");
 
-                              transDetailstempMap["trans_det_import_id"] = "0";
-                              transDetailstempMap["company_id"] =
-                                  c_id.toString();
-                              transDetailstempMap["branch_id"] =
-                                  br_id.toString();
-                              transDetailstempMap["log_user_id"] =
-                                  u_id.toString();
-                              transDetailstempMap["user_session"] = "245";
-                              transDetailstempMap["log_date"] = transactDate;
-                              transDetailstempMap["status"] = 0;
-                              // Create a ProductData object and add it to the list
-                              print(
-                                  "transdetails Map -----$i---${transDetailstempMap}");
-                              value.transdetailsList.add(transDetailstempMap);
-                              // value.transdt = TransDetailModel.fromJson(
-                              //     transDetailstempMap);
-                             
-                              // var trndt = await TeaDB.instance
-                              //     .inserttransDetails(value.transdt);
-                            }
-                             await Provider.of<Controller>(context,
-                                      listen: false)
-                                  .insertTransDetailstoDB(
-                                      value.transdetailsList);
-                            print(
-                                "transdetails List-${value.transdetailsList}");
+                        await Provider.of<Controller>(context, listen: false)
+                            .insertTransMastertoDB(value.transMasterMap);
 
-                            await Provider.of<Controller>(context,
-                                    listen: false)
-                                .insertTransMastertoDB(value.transMasterMap);
-                            // value.transm =
-                            //     TransMasterModel.fromJson(value.transMasterMap);
-                            // var trn = await TeaDB.instance
-                            //     .inserttransMasterDetails(value.transm);
-                            value.transMasterMap["details"] =
-                                value.transdetailsList;
-                            print("transMaster Map-${value.transMasterMap}");
-                            await Provider.of<Controller>(context,
-                                    listen: false)
-                                .savetransmaster(value.transMasterMap);
-
-                          } else {
-                            CustomSnackbar snak = CustomSnackbar();
-                            snak.showSnackbar(context, "Fill all fields", "");
-                          }
-                        },
-                        child: Text(
-                          "ADD ITEM",
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                          ),
-                        ))),
+                        value.transMasterMap["details"] =
+                            value.transdetailsList;
+                        print("transMaster Map-${value.transMasterMap}");
+                        await Provider.of<Controller>(context, listen: false)
+                            .savetransmaster(value.transMasterMap);
+                      } else {
+                        CustomSnackbar snak = CustomSnackbar();
+                        snak.showSnackbar(context, "Fill all fields", "");
+                      }
+                    },
+                    child: Text(
+                      "ADD ITEM",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             )
           ],

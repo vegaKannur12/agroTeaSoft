@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -5,9 +7,14 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tsupply/COMPONENTS/custom_snackbar.dart';
 import 'package:tsupply/CONTROLLER/controller.dart';
+import 'package:tsupply/DB-HELPER/dbhelp.dart';
 import 'package:tsupply/MODEL/routeModel.dart';
+import 'package:tsupply/MODEL/transMasterModel.dart';
+import 'package:tsupply/MODEL/transdetailModel.dart';
 import 'package:tsupply/SCREENS/DIALOGS/bottomtransdetails.dart';
+import 'package:tsupply/SCREENS/DIALOGS/dilogSupplier.dart';
 import 'package:tsupply/SCREENS/DRAWER/customdrawer.dart';
+import 'package:tsupply/tableList.dart';
 
 class CollectionPage extends StatefulWidget {
   const CollectionPage({super.key});
@@ -26,13 +33,21 @@ class _CollectionPageState extends State<CollectionPage>
   TextEditingController wgt_ctrl = TextEditingController();
   Map<String, dynamic>? selectedRoute;
   Map<String, dynamic>? selectedSpplierrr;
-  TransDetailsBottomSheet tdetbottom=TransDetailsBottomSheet();
+  TransDetailsBottomSheet tdetbottom = TransDetailsBottomSheet();
+  DialogSupplier supdio = DialogSupplier();
+  int? u_id;
+  String? uname;
+  String? upwd;
+  int? br_id;
+  int? c_id;
   @override
   void initState() {
     super.initState();
+    getSharedpref();
     _tabController = TabController(length: 2, vsync: this);
     displaydate = DateFormat('dd-MM-yyyy').format(date);
     transactDate = DateFormat('yyyy-MM-dd').format(date);
+    Provider.of<Controller>(context, listen: false).getProductsfromDB();
     Provider.of<Controller>(context, listen: false).getRoute(" ", context);
     print(("-----$displaydate"));
   }
@@ -40,7 +55,17 @@ class _CollectionPageState extends State<CollectionPage>
   @override
   void dispose() {
     _tabController.dispose();
+
     super.dispose();
+  }
+
+  getSharedpref() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    u_id = prefs.getInt("u_id");
+    c_id = prefs.getInt("c_id");
+    br_id = prefs.getInt("br_id");
+    uname = prefs.getString("uname");
+    upwd = prefs.getString("upwd");
   }
 
   @override
@@ -50,6 +75,17 @@ class _CollectionPageState extends State<CollectionPage>
       appBar: AppBar(
         backgroundColor: Colors.lightGreen,
         actions: [
+          IconButton(
+            onPressed: () async {
+              List<Map<String, dynamic>> list =
+                  await TeaDB.instance.getListOfTables();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TableList(list: list)),
+              );
+            },
+            icon: Icon(Icons.table_bar),
+          ),
           Padding(
             padding: const EdgeInsets.all(10),
             child: Text(
@@ -65,6 +101,7 @@ class _CollectionPageState extends State<CollectionPage>
       body: Consumer<Controller>(
         builder: (BuildContext context, Controller value, Widget? child) =>
             ListView(
+          shrinkWrap: true,
           children: [
             Container(
               color: Colors.lightGreen,
@@ -102,7 +139,8 @@ class _CollectionPageState extends State<CollectionPage>
                             onPressed: () {
                               if (selectedRoute != null) {
                                 print("---------$selectedRoute");
-                                buildSupplierPopupDialog(context, size);
+                                supdio.showSupplierDialog(context);
+                                // buildSupplierPopupDialog(context, size);
                               } else {
                                 CustomSnackbar snak = CustomSnackbar();
                                 snak.showSnackbar(context, "Select Route", "");
@@ -128,11 +166,12 @@ class _CollectionPageState extends State<CollectionPage>
                     width: size.width,
                     child: TabBar(controller: _tabController, tabs: [
                       Tab(
-                          text: 'Collection',
-                          icon: Icon(Icons.settings_input_composite_outlined)),
+                        text: 'Collection',
+                        // icon: Icon(Icons.settings_input_composite_outlined)
+                      ),
                       Tab(
                         text: 'Advance',
-                        icon: Icon(Icons.money_rounded),
+                        // icon: Icon(Icons.money_rounded),
                       ),
                     ]),
                   )
@@ -206,31 +245,6 @@ class _CollectionPageState extends State<CollectionPage>
                               Provider.of<Controller>(context, listen: false)
                                   .getSupplierfromDB(rid);
                               Navigator.pop(context);
-                              // Provider.of<Controller>(context, listen: false)
-                              //     .areaSelection(selected!);
-                              // Provider.of<Controller>(context, listen: false)
-                              //     .dashboardSummery(
-                              //         sid!, s[0], selected!, context);
-                              // String? genArea = Provider.of<Controller>(context,
-                              //         listen: false)
-                              //     .areaidFrompopup;
-                              // if (genArea != null) {
-                              //   gen_condition =
-                              //       " and accountHeadsTable.area_id=$genArea";
-                              // } else {
-                              //   gen_condition = " ";
-                              // }
-                              // Provider.of<Controller>(context, listen: false)
-                              //     .getCustomer(genArea!);
-                              // // Provider.of<Controller>(context, listen: false)
-                              // //     .todayOrder(s[0], gen_condition!);
-                              // Provider.of<Controller>(context, listen: false)
-                              //     .todayCollection(s[0], gen_condition!);
-                              // Provider.of<Controller>(context, listen: false)
-                              //     .todaySales(s[0], gen_condition!, "");
-                              // // Provider.of<Controller>(context, listen: false)
-                              // //     .selectReportFromOrder(
-                              // //         context, sid!, s[0], "");
                             } else {
                               Fluttertoast.showToast(
                                   msg: "This is a Toast message",
@@ -361,6 +375,190 @@ class _CollectionPageState extends State<CollectionPage>
             SizedBox(
               height: 20,
             ),
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: DataTable(
+                // border: TableBorder.all(color: Colors.black),
+                columnSpacing: 20,
+                columns: <DataColumn>[
+                  DataColumn(
+                    headingRowAlignment: MainAxisAlignment.start,
+                    label: Text(
+                      textAlign: TextAlign.start,
+                      'Product',
+                      style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Collected',
+                      style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Damage',
+                      style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Total',
+                      style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+                rows: value.prodList.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  var element = entry.value;
+                  return DataRow(
+                    cells: <DataCell>[
+                      DataCell(Text(element['product'])),
+                      DataCell(
+                        Container(
+                          width: size.width * 0.14,
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                                // focusedBorder: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: BorderSide(
+                                //     color: const Color.fromARGB(
+                                //         255, 199, 198, 198),
+                                //   ),
+                                // ),
+                                // enabledBorder: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: BorderSide(
+                                //     color: const Color.fromARGB(
+                                //         255, 199, 198, 198),
+                                //     width: 1.0,
+                                //   ),
+                                // ),
+                                // border: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: const BorderSide(
+                                //     color: Colors.black,
+                                //     width: 3,
+                                //   ),
+                                // ),
+                                hintText: ""),
+                            onTap: () {
+                              // Perform any action using the index
+                            },
+                            style: TextStyle(
+                              fontSize: 15.0,
+                            ),
+
+                            keyboardType: TextInputType.number,
+                            // onSubmitted: (values) {
+                            //   // Perform any action using the index
+                            // },
+                            textAlign: TextAlign.center,
+                            controller: value.colected[index],
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: size.width * 0.14,
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                                // focusedBorder: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: BorderSide(
+                                //     color: const Color.fromARGB(
+                                //         255, 199, 198, 198),
+                                //   ),
+                                // ),
+                                // enabledBorder: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: BorderSide(
+                                //     color: const Color.fromARGB(
+                                //         255, 199, 198, 198),
+                                //     width: 1.0,
+                                //   ),
+                                // ),
+                                // border: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: const BorderSide(
+                                //     color: Colors.black,
+                                //     width: 3,
+                                //   ),
+                                // ),
+                                hintText: ""),
+                            onTap: () {
+                              // Perform any action using the index
+                            },
+                            style: TextStyle(
+                              fontSize: 15.0,
+                            ),
+
+                            keyboardType: TextInputType.number,
+                            // onSubmitted: (values) {
+                            //   // Perform any action using the index
+                            // },
+                            textAlign: TextAlign.center,
+                            controller: value.damage[index],
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: size.width * 0.14,
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                                // focusedBorder: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: BorderSide(
+                                //     color: const Color.fromARGB(
+                                //         255, 199, 198, 198),
+                                //   ),
+                                // ),
+                                // enabledBorder: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: BorderSide(
+                                //     color: const Color.fromARGB(
+                                //         255, 199, 198, 198),
+                                //     width: 1.0,
+                                //   ),
+                                // ),
+                                // border: OutlineInputBorder(
+                                //   borderRadius: BorderRadius.circular(12),
+                                //   borderSide: const BorderSide(
+                                //     color: Colors.black,
+                                //     width: 3,
+                                //   ),
+                                // ),
+                                hintText: ""),
+                            onTap: () {
+                              // Perform any action using the index
+                            },
+                            style: TextStyle(
+                              fontSize: 15.0,
+                            ),
+
+                            keyboardType: TextInputType.number,
+                            // onSubmitted: (values) {
+                            //   // Perform any action using the index
+                            // },
+                            textAlign: TextAlign.center,
+                            controller: value.total[index],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -378,13 +576,17 @@ class _CollectionPageState extends State<CollectionPage>
                               selectedRoute != null &&
                               bagno_ctrl.text != "" &&
                               wgt_ctrl.text != "") {
+                            int max = await TeaDB.instance.getMaxCommonQuery(
+                                'TransMasterTable', 'tid', " ");
+                            print("int max---- $max");
                             print(
-                                "----------------------${value.selectedsuplier.toString()}");
+                                "sel suppl----------------------${value.selectedsuplier.toString()}");
+                            // int transid = await randomNo();
                             final prefs = await SharedPreferences.getInstance();
                             int? supId = prefs.getInt("sel_accid");
                             String? supName = prefs.getString("sel_accnm");
-                            value.transMasterMap.clear();
-                            value.transMasterMap["id"] = 7;
+
+                            value.transMasterMap["trans_id"] = max;
                             value.transMasterMap["trans_series"] = "AB";
                             value.transMasterMap["trans_date"] = transactDate;
                             value.transMasterMap["trans_party_id"] =
@@ -396,55 +598,96 @@ class _CollectionPageState extends State<CollectionPage>
                             value.transMasterMap["trans_bag_weights"] =
                                 wgt_ctrl.text.toString();
                             // "25,21,65,985";
-                            value.transMasterMap["trans_import_id"] = "23";
-                            value.transMasterMap["company_id"] = "01";
-                            value.transMasterMap["branch_id"] = "01";
+                            value.transMasterMap["trans_import_id"] = "0";
+                            value.transMasterMap["company_id"] =
+                                c_id.toString();
+                            value.transMasterMap["branch_id"] =
+                                br_id.toString();
                             value.transMasterMap["user_session"] = "245";
-                            value.transMasterMap["log_user_id"] = "2";
+                            value.transMasterMap["log_user_id"] =
+                                u_id.toString();
                             value.transMasterMap["hidden_status"] = "0";
                             value.transMasterMap["row_id"] = "0";
-                            value.transMasterMap["log_user_name"] = "user";
-                            value.transMasterMap["log_date"] = "2024-09-02";
+                            value.transMasterMap["log_user_name"] =
+                                uname.toString();
+                            value.transMasterMap["log_date"] = transactDate;
                             value.transMasterMap["status"] = 0;
+                            for (int i = 0; i < value.prodList.length; i++) {
+                              Map<String, dynamic> transDetailstempMap = {};
+                              int pid = value.prodList[i]['pid'];
+                              String product = value.prodList[i]
+                                  ['product']; // Get the product name
+                              String collected = value
+                                  .colected[i].text; // Get the collected value
+                              String damage =
+                                  value.damage[i].text; // Get the damage value
+                              String total =
+                                  value.total[i].text; // Get the total value
+                              print("pid---$pid");
+                              print("pName---$product");
+                              print(
+                                  "Coll----damg----totl---$collected---$damage---$total");
 
-                            // {
-                            //   "id": 3,
-                            //   "trans_series": "AB",
-                            //   "trans_date": "2024-08-06",
-                            //   "trans_party_id": "12",
-                            //   "trans_party_name": "dhanush",
-                            //   "trans_remark": "Remarks",
-                            //   "trans_bag_nos": "4",
-                            //   "trans_bag_weights": "25,21,65,985",
-                            //   "trans_import_id": "23",
-                            //   "company_id": "01",
-                            //   "branch_id": "01",
-                            //   "user_session": "245",
-                            //   "log_user_id": "2",
-                            //   "hidden_status": "0",
-                            //   "row_id": "0",
-                            //   "log_user_name": "user",
-                            // };
+                              transDetailstempMap["trans_det_mast_id"] =
+                                  "AB$max";
+                              transDetailstempMap["trans_det_prod_id"] = pid;
+                              transDetailstempMap["trans_det_col_qty"] =
+                                  collected;
+                              transDetailstempMap["trans_det_dmg_qty"] = damage;
+                              transDetailstempMap["trans_det_net_qty"] = total;
+                              transDetailstempMap["trans_det_unit"] = "KG";
+                              transDetailstempMap["trans_det_rate_id"] = "0";
+                              transDetailstempMap["trans_det_value"] = "0";
+                             
+
+                              transDetailstempMap["trans_det_import_id"] = "0";
+                              transDetailstempMap["company_id"] =
+                                  c_id.toString();
+                              transDetailstempMap["branch_id"] =
+                                  br_id.toString();
+                              transDetailstempMap["log_user_id"] =
+                                  u_id.toString();
+                              transDetailstempMap["user_session"] = "245";
+                              transDetailstempMap["log_date"] = transactDate;
+                              transDetailstempMap["status"] = 0;
+                              // Create a ProductData object and add it to the list
+                              print(
+                                  "transdetails Map -----$i---${transDetailstempMap}");
+                              value.transdetailsList.add(transDetailstempMap);
+                              // value.transdt = TransDetailModel.fromJson(
+                              //     transDetailstempMap);
+                             
+                              // var trndt = await TeaDB.instance
+                              //     .inserttransDetails(value.transdt);
+                            }
+                             await Provider.of<Controller>(context,
+                                      listen: false)
+                                  .insertTransDetailstoDB(
+                                      value.transdetailsList);
+                            print(
+                                "transdetails List-${value.transdetailsList}");
+
+                            await Provider.of<Controller>(context,
+                                    listen: false)
+                                .insertTransMastertoDB(value.transMasterMap);
+                            // value.transm =
+                            //     TransMasterModel.fromJson(value.transMasterMap);
+                            // var trn = await TeaDB.instance
+                            //     .inserttransMasterDetails(value.transm);
+                            value.transMasterMap["details"] =
+                                value.transdetailsList;
+                            print("transMaster Map-${value.transMasterMap}");
                             await Provider.of<Controller>(context,
                                     listen: false)
                                 .savetransmaster(value.transMasterMap);
-                              await Provider.of<Controller>(context, listen: false)
-                                  .getProductsfromDB();
-                                tdetbottom.showTransDetailsMoadlBottomsheet(context, size,displaydate!);
-                            // Fluttertoast.showToast(
-                            //     msg: "This is a Toast message",
-                            //     toastLength: Toast.LENGTH_SHORT,
-                            //     gravity: ToastGravity.CENTER,
-                            //     timeInSecForIosWeb: 1,
-                            //     textColor: Colors.white,
-                            //     fontSize: 16.0);
+
                           } else {
                             CustomSnackbar snak = CustomSnackbar();
                             snak.showSnackbar(context, "Fill all fields", "");
                           }
                         },
                         child: Text(
-                          "ADD",
+                          "ADD ITEM",
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.white,
@@ -458,8 +701,19 @@ class _CollectionPageState extends State<CollectionPage>
     );
   }
 
+  randomNo() {
+    int rr = 0;
+    var rng = Random();
+    for (var i = 0; i < 10; i++) {
+      rr = rng.nextInt(100);
+      print("randoooomm--------${rng.nextInt(100)}");
+    }
+    return rr;
+  }
+
   TextFormField customTextfield(TextEditingController contr) {
-    return TextFormField(keyboardType: TextInputType.number,
+    return TextFormField(
+      keyboardType: TextInputType.phone,
       controller: contr,
       decoration: InputDecoration(
           focusedBorder: OutlineInputBorder(

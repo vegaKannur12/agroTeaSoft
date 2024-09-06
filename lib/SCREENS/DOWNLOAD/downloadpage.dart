@@ -69,7 +69,7 @@ class _DownLoadPageState extends State<DownLoadPage> {
                                               "Route") {
                                             Provider.of<Controller>(context,
                                                     listen: false)
-                                                .getRouteDetails(index, "");
+                                                .getRouteDetails(index, "",context);
                                           } else if (value
                                                   .downloadItems[index] ==
                                               "Supplier Details") {

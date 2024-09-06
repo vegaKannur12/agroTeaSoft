@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tsupply/COMPONENTS/external_dir.dart';
 import 'package:tsupply/CONTROLLER/controller.dart';
 import 'package:tsupply/SCREENS/AUTH/login.dart';
+import 'package:tsupply/SCREENS/AUTH/registr.dart';
 import 'package:tsupply/SCREENS/COLLECTION/collection.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,69 +16,48 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  String? cid;
-  String? com_cid;
+  int? cid;
   String? fp;
-  bool? isautodownload;
   String? st_uname;
   String? st_pwd;
-  String? userType;
-  String? firstMenu;
-  String? versof;
-  bool? continueClicked;
-  bool? staffLog;
-  String? dataFile;
   String? os;
 
   ExternalDir externalDir = ExternalDir();
 
   navigate() async {
     await Future.delayed(Duration(seconds: 3), () async {
-  
-      // if (versof.toString() != "0") {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      cid = prefs.getInt("c_id");
+      // os = prefs.getString("os");
+      st_uname = prefs.getString("uname");
+     
+      st_pwd = prefs.getString("upwd");
+     
+      print("auth-----$cid---$st_uname---$st_pwd--");
+    
+
+    
       Navigator.push(
           context,
           PageRouteBuilder(
               opaque: false, // set to false
               pageBuilder: (_, __, ___) {
-                return CollectionPage();
-          
+                if (cid != null) 
+                {
+                  print("CID:$cid \n FP :$fp");
+                  if (st_uname != null && st_pwd != null) {
+                    return CollectionPage();
+                  } 
+                  else 
+                  {
+                    return USERLogin();
+                  }
+                } 
+                else 
+                {
+                  return Registration();
+                }
               }));
-      // if (versof != "0") {
-      //   Navigator.push(
-      //       context,
-      //       PageRouteBuilder(
-      //           opaque: false, // set to false
-      //           pageBuilder: (_, __, ___) {
-      //             if (cid != null) {
-      //               if (continueClicked != null && continueClicked!) {
-      //                 print("continueClicked.............$continueClicked");
-      //                 if (st_uname != null &&
-      //                     st_pwd != null &&
-      //                     staffLog != null &&
-      //                     staffLog!) {
-      //                   return Dashboard();
-      //                 } else {
-      //                   return StaffLogin();
-      //                 }
-      //               } else {
-      //                 if (os != null && os!.isNotEmpty) {
-      //                   Provider.of<Controller>(context, listen: false)
-      //                       .getCompanyData(context);
-      //                   return CompanyDetails(
-      //                     type: "",
-      //                     msg: "",
-      //                     br_length: 0,
-      //                   );
-      //                 } else {
-      //                   return RegistrationScreen();
-      //                 }
-      //               }
-      //             } else {
-      //               return RegistrationScreen();
-      //             }
-      //           }));
-      // }
     });
   }
 
@@ -97,11 +76,12 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
-      
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
-    Provider.of<Controller>(context, listen: false).setdownflag();});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<Controller>(context, listen: false).getUsersfromDB();
+       Provider.of<Controller>(context, listen: false).setdownflag();
+    });
     // Provider.of<Controller>(context, listen: false).fetchMenusFromMenuTable();
     // Provider.of<Controller>(context, listen: false)
     //     .verifyRegistration(context, "splash");
@@ -111,7 +91,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-  
     super.dispose();
   }
 
@@ -120,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen>
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor:Colors.teal,
+      backgroundColor: Colors.teal,
       body: InkWell(
         onTap: () {
           FocusScope.of(context).requestFocus(FocusNode());

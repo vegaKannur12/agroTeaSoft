@@ -9,6 +9,7 @@ import 'package:tsupply/MODEL/accountMasterModel.dart';
 import 'package:tsupply/MODEL/prodModel.dart';
 import 'package:tsupply/MODEL/routeModel.dart';
 import 'package:tsupply/MODEL/transMasterModel.dart';
+import 'package:tsupply/MODEL/transdetailModel.dart';
 import 'package:tsupply/MODEL/userModel.dart';
 
 class TeaDB {
@@ -106,6 +107,8 @@ class TeaDB {
             trans_det_dmg_qty TEXT,
             trans_det_net_qty TEXT,
             trans_det_unit TEXT,
+            trans_det_rate_id TEXT,		
+            trans_det_value TEXT,		
             trans_det_import_id TEXT,
             company_id TEXT,
             branch_id TEXT,
@@ -161,7 +164,17 @@ class TeaDB {
   Future inserttransMasterDetails(TransMasterModel tdata) async {
     final db = await database;
     var query3 =
-        'INSERT INTO TransMasterTable(tid, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos ,trans_bag_weights ,trans_import_id ,company_id,branch_id ,user_session,log_user_id,log_date,status) VALUES(${tdata.id}, "${tdata.trans_series}", "${tdata.trans_date}", "${tdata.trans_party_id}", "${tdata.trans_party_name}", "${tdata.trans_remark}", "${tdata.trans_bag_nos}", "${tdata.trans_bag_weights}", "${tdata.trans_import_id}", "${tdata.company_id}", "${tdata.branch_id}", "${tdata.user_session}", "${tdata.log_user_id}", "${tdata.log_date}", ${tdata.status})';
+        'INSERT INTO TransMasterTable(tid, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos ,trans_bag_weights ,trans_import_id ,company_id,branch_id ,user_session,log_user_id,log_date,status) VALUES(${tdata.tid}, "${tdata.trans_series}", "${tdata.trans_date}", "${tdata.trans_party_id}", "${tdata.trans_party_name}", "${tdata.trans_remark}", "${tdata.trans_bag_nos}", "${tdata.trans_bag_weights}", "${tdata.trans_import_id}", "${tdata.company_id}", "${tdata.branch_id}", "${tdata.user_session}", "${tdata.log_user_id}", "${tdata.log_date}", ${tdata.status})';
+    var res = await db.rawInsert(query3);
+    print(query3);
+    print(res);
+    return res;
+  }
+
+  Future inserttransDetails(TransDetailModel ddata) async {
+    final db = await database;
+    var query3 =
+        'INSERT INTO TransDetailsTable(trans_det_mast_id,trans_det_prod_id,trans_det_col_qty ,trans_det_dmg_qty ,trans_det_net_qty,trans_det_unit ,trans_det_import_id ,company_id ,branch_id,log_user_id,user_session,log_date,status) VALUES("${ddata.trans_det_mast_id}", "${ddata.trans_det_prod_id}","${ddata.trans_det_col_qty}","${ddata.trans_det_dmg_qty}","${ddata.trans_det_net_qty}","${ddata.trans_det_unit}","${ddata.trans_det_import_id}","${ddata.company_id}","${ddata.branch_id}","${ddata.log_user_id}","${ddata.user_session}","${ddata.log_date}",${ddata.status})';
     var res = await db.rawInsert(query3);
     print(query3);
     print(res);
@@ -172,6 +185,15 @@ class TeaDB {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
     list = await db.rawQuery('SELECT rid,routename FROM routeDetailsTable');
+    return list;
+  }
+
+  Future<List<Map<String, dynamic>>> gettransMasterDetfromDB(int? tid) async {
+    List<Map<String, dynamic>> list = [];
+    Database db = await instance.database;
+    list = await db.rawQuery(
+        'SELECT tid,trans_series,trans_date,trans_party_id,trans_party_name,trans_remark, trans_bag_nos,trans_bag_weights,trans_import_id, company_id,branch_id,user_session, log_user_id,log_date,status FROM TransMasterTable where tid=$tid');
+    print("List===$list");
     return list;
   }
 
@@ -196,6 +218,13 @@ class TeaDB {
     return list;
   }
 
+  Future<List<Map<String, dynamic>>> getUserListfromDB() async {
+    List<Map<String, dynamic>> list = [];
+    Database db = await instance.database;
+    list = await db.rawQuery('SELECT * FROM UserMasterTable');
+    return list;
+  }
+
   upadteCommonQuery(String table, String fields, String condition) async {
     Database db = await instance.database;
     print("condition for update...$table....$fields.............$condition");
@@ -204,6 +233,11 @@ class TeaDB {
     var res = await db.rawUpdate(query);
     print("response-update------$res");
     return res;
+  }
+
+  Future<int> insertTransDetail(TransDetailModel detail) async {
+    final db = await instance.database;
+    return await db.insert('TransDetailsTable', detail.toMap());
   }
 
   deleteFromTableCommonQuery(String table, String? condition) async {
@@ -233,5 +267,39 @@ class TeaDB {
     var list = await db.rawQuery('SELECT * FROM $tablename');
     print(list);
     return list;
+  }
+
+  getMaxCommonQuery(String table, String field, String? condition) async {
+    var res;
+    int max;
+    var result;
+    Database db = await instance.database;
+    print("condition---${condition}");
+    if (condition == " ") {
+      result = await db.rawQuery("SELECT * FROM '$table'");
+    } else {
+      result = await db.rawQuery("SELECT * FROM '$table' WHERE $condition");
+    }
+    // print("result max---$result");
+    if (result != null && result.isNotEmpty) {
+      if (condition == " ") {
+        res = await db.rawQuery("SELECT MAX($field) max_val FROM '$table'");
+      } else {
+        res = await db.rawQuery(
+            "SELECT MAX($field) max_val FROM '$table' WHERE $condition");
+      }
+
+      print('res[0]["max_val"] ----${res[0]["max_val"]}');
+      // int convertedMax = int.parse(res[0]["max_val"]);
+      max = res[0]["max_val"] + 1;
+      print("max value.........$max");
+      print("SELECT MAX($field) max_val FROM '$table' WHERE $condition");
+    } else {
+      print("else");
+      max = 1;
+    }
+    print("max common-----$res");
+    print(res);
+    return max;
   }
 }

@@ -1,5 +1,5 @@
 class TransMasterModel {
-  int? id;
+  int? tid;
   String? trans_series;
   String? trans_date;
   String? trans_party_id;
@@ -16,7 +16,7 @@ class TransMasterModel {
   int? status;
 
   TransMasterModel(
-      {this.id,
+      {this.tid,
       this.trans_series,
       this.trans_date,
       this.trans_party_id,
@@ -33,7 +33,7 @@ class TransMasterModel {
       this.status});
 
   TransMasterModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    tid = json['trans_id'];
     trans_series = json['trans_series'];
     trans_date = json['trans_date'];
     trans_party_id = json['trans_party_id'];
@@ -52,7 +52,7 @@ class TransMasterModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
-    data['id'] = id;
+    data['trans_id'] = tid;
     data['trans_series'] = trans_series;
     data['trans_date'] = trans_date;
     data['trans_party_id'] = trans_party_id;

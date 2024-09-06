@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tsupply/SCREENS/AUTH/login.dart';
 import 'package:tsupply/SCREENS/COLLECTION/collection.dart';
 import 'package:tsupply/SCREENS/DOWNLOAD/downloadpage.dart';
@@ -40,7 +41,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               child: ListTile(
                 title: Text(itemList[index].title.toString()),
               ),
-              onTap: () {
+              onTap: () async {
                 if (index == 0) {
                   Navigator.of(context).push(
                     PageRouteBuilder(
@@ -54,10 +55,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         pageBuilder: (_, __, ___) => DownLoadPage()),
                   );
                 } else if (index == 2) {
-                   Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => USERLogin()));
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.remove('u_id');
+                  await prefs.remove('uname');
+                  await prefs.remove('upwd');
+                  print("...............log cleared");
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => USERLogin()));
                 }
               },
             );

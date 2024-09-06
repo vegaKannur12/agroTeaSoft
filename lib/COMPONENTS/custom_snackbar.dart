@@ -4,7 +4,7 @@ class CustomSnackbar {
     ScaffoldMessenger. of(context).showSnackBar(
       SnackBar(behavior: SnackBarBehavior.floating,
         backgroundColor:Colors.black,
-        duration:  Duration(seconds: 2),
+        duration:  Duration(seconds: 5),
         content: Text(content,style: TextStyle(color: Colors.white),),
         action: SnackBarAction(
           label: '',

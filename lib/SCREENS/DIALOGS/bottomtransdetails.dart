@@ -49,10 +49,11 @@ class TransDetailsBottomSheet {
                                 ],
                               ),
                               Padding(
-                                padding:  EdgeInsets.all(8.0),
+                                padding: EdgeInsets.all(8.0),
                                 child: DataTable(
-                                  border: TableBorder.all(color: Colors.black),columnSpacing: 13,
-                                  columns:  <DataColumn>[
+                                  // border: TableBorder.all(color: Colors.black),
+                                  columnSpacing: 13,
+                                  columns: <DataColumn>[
                                     DataColumn(
                                       label: Text(
                                         'Product',
@@ -87,143 +88,161 @@ class TransDetailsBottomSheet {
                                     ),
                                   ],
                                   rows: value.prodList
-                                      .map(
-                                        (element) => DataRow(
-                                          cells: <DataCell>[
-                                            DataCell(Text(element['product'])),
-                                            DataCell(TextFormField(keyboardType: TextInputType.number,
-                                              decoration: InputDecoration(
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              199,
-                                                              198,
-                                                              198),
-                                                    ),
-                                                  ),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              199,
-                                                              198,
-                                                              198),
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide:
-                                                        const BorderSide(
-                                                      color: Colors.black,
-                                                      width: 3,
-                                                    ),
-                                                  ),
-                                                  hintText: ""),
-                                            )),
-                                            DataCell(TextFormField(keyboardType: TextInputType.number,
-                                              decoration: InputDecoration(
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              199,
-                                                              198,
-                                                              198),
-                                                    ),
-                                                  ),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              199,
-                                                              198,
-                                                              198),
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide:
-                                                        const BorderSide(
-                                                      color: Colors.black,
-                                                      width: 3,
-                                                    ),
-                                                  ),
-                                                  hintText: ""),
-                                            )),
-                                            DataCell(TextFormField(keyboardType: TextInputType.number,
-                                              decoration: InputDecoration(
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              199,
-                                                              198,
-                                                              198),
-                                                    ),
-                                                  ),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              199,
-                                                              198,
-                                                              198),
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    borderSide:
-                                                        const BorderSide(
-                                                      color: Colors.black,
-                                                      width: 3,
-                                                    ),
-                                                  ),
-                                                  hintText: ""),
-                                            )),
-                                          ],
+                                      .asMap()
+                                      .entries
+                                      .map((entry) {
+                                    int index = entry.key;
+                                    var element = entry.value;
+                                    return DataRow(
+                                      cells: <DataCell>[
+                                        DataCell(Text(element['product'])),
+                                        DataCell(
+                                          Container(
+                                            width: size.width * 0.14,
+                                            child: TextFormField(
+                                                   decoration: InputDecoration(
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: BorderSide(
+                                                  color: const Color.fromARGB(
+                                                      255, 199, 198, 198),
+                                                ),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: BorderSide(
+                                                  color: const Color.fromARGB(
+                                                      255, 199, 198, 198),
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                  color: Colors.black,
+                                                  width: 3,
+                                                ),
+                                              ),
+                                              hintText: ""),
+                                              onTap: () {
+                                                // Perform any action using the index
+                                              },
+                                              style: TextStyle(
+                                                fontSize: 15.0,
+                                              ),
+                                             
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              // onSubmitted: (values) {
+                                              //   // Perform any action using the index
+                                              // },
+                                              textAlign: TextAlign.center,
+                                              controller: value.colected[index],
+                                            ),
+                                          ),
                                         ),
-                                      )
-                                      .toList(),
+                                        DataCell(
+                                          Container(
+                                            width: size.width * 0.14,
+                                            child: TextFormField(
+                                                   decoration: InputDecoration(
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: BorderSide(
+                                                  color: const Color.fromARGB(
+                                                      255, 199, 198, 198),
+                                                ),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: BorderSide(
+                                                  color: const Color.fromARGB(
+                                                      255, 199, 198, 198),
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                  color: Colors.black,
+                                                  width: 3,
+                                                ),
+                                              ),
+                                              hintText: ""),
+                                              onTap: () {
+                                                // Perform any action using the index
+                                              },
+                                              style: TextStyle(
+                                                fontSize: 15.0,
+                                              ),
+                                             
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              // onSubmitted: (values) {
+                                              //   // Perform any action using the index
+                                              // },
+                                              textAlign: TextAlign.center,
+                                              controller: value.damage[index],
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Container(
+                                            width: size.width * 0.14,
+                                            child: TextFormField(
+                                                   decoration: InputDecoration(
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: BorderSide(
+                                                  color: const Color.fromARGB(
+                                                      255, 199, 198, 198),
+                                                ),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: BorderSide(
+                                                  color: const Color.fromARGB(
+                                                      255, 199, 198, 198),
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                  color: Colors.black,
+                                                  width: 3,
+                                                ),
+                                              ),
+                                              hintText: ""),
+                                              onTap: () {
+                                                // Perform any action using the index
+                                              },
+                                              style: TextStyle(
+                                                fontSize: 15.0,
+                                              ),
+                                             
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              // onSubmitted: (values) {
+                                              //   // Perform any action using the index
+                                              // },
+                                              textAlign: TextAlign.center,
+                                              controller: value.total[index],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
                                 ),
                               ),
                               Padding(

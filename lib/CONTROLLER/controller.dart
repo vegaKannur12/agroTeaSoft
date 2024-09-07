@@ -58,6 +58,7 @@ class Controller extends ChangeNotifier {
   List<Map<String, dynamic>> prodList = [];
   List<Map<String, dynamic>> transdetailsList = [];
   List<Map<String, dynamic>> transmasterList = [];
+  List<Map<String, dynamic>> finalSaveinnerList = [];
   List<Map<String, dynamic>> finalSaveList = [];
   Map<String, dynamic> transMasterMap = {};
   Map<String, dynamic> transDetailsMap = {};
@@ -102,24 +103,29 @@ class Controller extends ChangeNotifier {
       print("body ${body}");
       var map = jsonDecode(response.body);
       print("route Map--> $map");
+      if (map != null) {
+        await TeaDB.instance
+            .deleteFromTableCommonQuery('routeDetailsTable', "");
+        // List map = [
+        //   {"id": 1, "name": "Kannur", "status": 0},
+        //   {"id": 2, "name": "Thalassery", "status": 0},
+        //   {"id": 3, "name": "Mattannur", "status": 0}
+        // ];
 
-      await TeaDB.instance.deleteFromTableCommonQuery('routeDetailsTable', "");
-      // List map = [
-      //   {"id": 1, "name": "Kannur", "status": 0},
-      //   {"id": 2, "name": "Thalassery", "status": 0},
-      //   {"id": 3, "name": "Mattannur", "status": 0}
-      // ];
-
-      for (var routee in map) {
-        print("routeeee----${routee.length}");
-        routee = RouteModel.fromJson(routee);
-        var rote = await TeaDB.instance.insertrouteDetails(routee);
-        print("inserted ${rote}");
+        for (var routee in map) {
+          print("routeeee----${routee.length}");
+          routee = RouteModel.fromJson(routee);
+          var rote = await TeaDB.instance.insertrouteDetails(routee);
+          print("inserted ${rote}");
+        }
+        downloading[index] = false;
+        downlooaded[index] = true;
+        getRoute(" ", context);
+        notifyListeners();
+        return routee;
+      } else {
+        print("route Map null");
       }
-      downloading[index] = false;
-      downlooaded[index] = true;
-      notifyListeners();
-      return routee;
     } catch (e) {
       downloading[index] = false;
       if (e is SocketException) {
@@ -146,38 +152,210 @@ class Controller extends ChangeNotifier {
     filteredlist.clear();
     finalSaveMap.clear();
     notifyListeners();
-    print("tid----------${mstr["tid"].toString()}");
-    finalSaveList.add(mstr);
-    finalSaveMap['transactions'] = finalSaveList;
+    print("trans_id----------${mstr["trans_id"].toString()}");
+    finalSaveinnerList.add(mstr);
+    finalSaveMap['transactions'] = finalSaveinnerList;
     notifyListeners();
-    print("final LIST=---------------$finalSaveList");
+    print("final LIST=---------------$finalSaveinnerList");
     print(
         "final MAP=---------------$finalSaveMap"); //  //  save-api format of transaction
 
-    // finalSavetoapi(finalSaveMap);
+    finalSavetoapi(finalSaveMap);
 
     transdetailsList.clear();
   }
 
-  importFinal() async {
-    Map<String, dynamic> matermap = {};
-    List<Map<String, dynamic>> detailsList = [];
+  importFinal(
+      BuildContext context, List? transfiltered) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ts = prefs.getString("t_series");
+    String? unm = prefs.getString("uname");
+
+    finalSaveList.clear();
+    finalSaveMap.clear();
+    finalSaveinnerList.clear(); // Clear finalSaveinnerList at the beginning
+    notifyListeners();
+
+    print("Master List: $importtransMasterList");
+    print("Details List: $importtransDetailsList");
+
     for (var i = 0; i < importtransMasterList.length; i++) {
-      int transid = importtransMasterList[i]["tid"];
-      print("transddd==$transid");
-      matermap = Map.from(importtransMasterList[i]);
-      // matermap = importtransMasterList[i];
-      for (var j = 0; j < importtransDetailsList.length; j++) {
-        if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
-            "AB$transid") {
-          detailsList.add(importtransDetailsList[j]);
+      // matermap.clear();
+      // if (transfiltered!.isEmpty) {
+        Map<String, dynamic> matermap = {};
+        notifyListeners();
+        int transid = importtransMasterList[i]["trans_id"];
+        print("Processing trans_id: $transid");
+        String mastrid = "$ts$transid";
+        print("Generated mastrid: $mastrid");
+        matermap = Map.from(importtransMasterList[i]); //hidden_status
+        matermap["trans_id"] = importtransMasterList[i]["trans_id"];
+        matermap["trans_series"] = importtransMasterList[i]["trans_series"];
+        matermap["trans_date"] = importtransMasterList[i]["trans_date"];
+        matermap["trans_party_id"] = importtransMasterList[i]["trans_party_id"];
+        matermap["trans_party_name"] =
+            importtransMasterList[i]["trans_party_name"];
+        matermap["trans_remark"] = importtransMasterList[i]["trans_remark"];
+        matermap["trans_bag_nos"] = importtransMasterList[i]["trans_bag_nos"];
+        matermap["trans_bag_weights"] =
+            importtransMasterList[i]["trans_bag_weights"];
+        matermap["trans_import_id"] =
+            importtransMasterList[i]["trans_import_id"];
+        matermap["company_id"] = importtransMasterList[i]["company_id"];
+        matermap["branch_id"] = importtransMasterList[i]["branch_id"];
+        matermap["user_session"] = importtransMasterList[i]["user_session"];
+        matermap["log_user_id"] = importtransMasterList[i]["log_user_id"];
+        matermap["hidden_status"] = "0";
+        matermap["row_id"] = "0";
+        matermap["log_user_name"] = unm;
+        matermap["log_date"] = importtransMasterList[i]["log_date"];
+        matermap["status"] = importtransMasterList[i]["status"];
+        List<Map<String, dynamic>> detailsList = [];
+        for (var j = 0; j < importtransDetailsList.length; j++) {
+          print(
+              "Checking details for mastrid: $mastrid and trans_det_mast_id: ${importtransDetailsList[j]["trans_det_mast_id"]}");
+          // Check if the detail belongs to the current master entry
+          if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
+              mastrid) {
+            detailsList.add(importtransDetailsList[j]);
+          }
         }
-      }
-      matermap["details"] = detailsList;
-      notifyListeners();
-      print("mastreMap====$matermap");
+
+        // Attach details to the master entry if available
+        if (detailsList.isNotEmpty) {
+          matermap["details"] = detailsList;
+          finalSaveinnerList.add(matermap);
+          // matermap.clear();
+          print("Added master with details: $matermap");
+        } else {
+          print("No details found for trans_id: $transid");
+        }
+        notifyListeners();
+      // } else {
+      //   print(object)
+      //   for (var i = 0; i < transfiltered.length; i++) {
+      //     if (importtransMasterList[i]["trans_id"] == transfiltered[i]) {
+      //       Map<String, dynamic> matermap = {};
+      //       notifyListeners();
+      //       int transid = importtransMasterList[i]["trans_id"];
+      //       print("Processing trans_id: $transid");
+      //       String mastrid = "$ts$transid";
+      //       print("Generated mastrid: $mastrid");
+
+      //       matermap = Map.from(importtransMasterList[i]); //hidden_status
+      //       matermap["trans_id"] = importtransMasterList[i]["trans_id"];
+      //       matermap["trans_series"] = importtransMasterList[i]["trans_series"];
+      //       matermap["trans_date"] = importtransMasterList[i]["trans_date"];
+      //       matermap["trans_party_id"] =
+      //           importtransMasterList[i]["trans_party_id"];
+      //       matermap["trans_party_name"] =
+      //           importtransMasterList[i]["trans_party_name"];
+      //       matermap["trans_remark"] = importtransMasterList[i]["trans_remark"];
+      //       matermap["trans_bag_nos"] =
+      //           importtransMasterList[i]["trans_bag_nos"];
+      //       matermap["trans_bag_weights"] =
+      //           importtransMasterList[i]["trans_bag_weights"];
+      //       matermap["trans_import_id"] =
+      //           importtransMasterList[i]["trans_import_id"];
+      //       matermap["company_id"] = importtransMasterList[i]["company_id"];
+      //       matermap["branch_id"] = importtransMasterList[i]["branch_id"];
+      //       matermap["user_session"] = importtransMasterList[i]["user_session"];
+      //       matermap["log_user_id"] = importtransMasterList[i]["log_user_id"];
+      //       matermap["hidden_status"] = "0";
+      //       matermap["row_id"] = "0";
+      //       matermap["log_user_name"] = unm;
+      //       matermap["log_date"] = importtransMasterList[i]["log_date"];
+      //       matermap["status"] = importtransMasterList[i]["status"];
+
+      //       List<Map<String, dynamic>> detailsList = [];
+
+      //       for (var j = 0; j < importtransDetailsList.length; j++) {
+      //         print(
+      //             "Checking details for mastrid: $mastrid and trans_det_mast_id: ${importtransDetailsList[j]["trans_det_mast_id"]}");
+
+      //         // Check if the detail belongs to the current master entry
+      //         if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
+      //             mastrid) {
+      //           detailsList.add(importtransDetailsList[j]);
+      //         }
+      //       }
+
+      //       // Attach details to the master entry if available
+      //       if (detailsList.isNotEmpty) {
+      //         matermap["details"] = detailsList;
+      //         finalSaveinnerList.add(matermap);
+      //         // matermap.clear();
+      //         print("Added master with details: $matermap");
+      //       } else {
+      //         print("No details found for trans_id: $transid");
+      //       }
+      //       notifyListeners();
+      //     }
+      //   }
+
+      //   ///
+      // }
     }
+
+    // Prepare final save map and list
+    finalSaveMap['transactions'] = finalSaveinnerList;
+    print("Final MAP: $finalSaveMap"); // API-ready map format
+
+    finalSaveList.add(finalSaveMap);
+    print("Final LIST: $finalSaveList");
+    print("Final LIST length: ${finalSaveList.length}");
+    notifyListeners();
+
+    // Send data to API
+    finalSavetoapi(finalSaveMap);   //uncomented in future
   }
+
+  // importFinal() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? ts = prefs.getString("t_series");
+  //   finalSaveList.clear();
+  //   finalSaveMap.clear();
+  //   notifyListeners();
+  //   Map<String, dynamic> matermap = {};
+
+  //   for (var i = 0; i < importtransMasterList.length; i++) {
+  //     matermap.clear();
+
+  //     notifyListeners();
+  //     int transid = importtransMasterList[i]["trans_id"];
+  //     print("transddd==$transid");
+  //     String mastrid = "$ts$transid";
+  //     matermap = Map.from(importtransMasterList[i]);
+  //     // matermap = importtransMasterList[i];
+  //     List<Map<String, dynamic>> detailsList = [];
+  //     for (var j = 0; j < importtransDetailsList.length; j++) {
+  //       if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
+  //           mastrid) {
+  //         detailsList.add(importtransDetailsList[j]);
+  //       }
+  //     }
+  //     matermap["details"] = detailsList;
+  //     notifyListeners();
+  //     print("mastreMap====$matermap");
+
+  //     notifyListeners();
+  //     print("trans_id----------${matermap["trans_id"].toString()}");
+  //     finalSaveinnerList.add(matermap);
+
+  //     notifyListeners();
+  //   }
+  //   print("final INNER LIST=---------------$finalSaveinnerList");
+  //   finalSaveMap['transactions'] = finalSaveinnerList;
+  //   print(
+  //       "final MAP=---------------$finalSaveMap"); //  //  save-api format of transaction
+
+  //   finalSaveList.add(finalSaveMap);
+  //   notifyListeners();
+  //   print("final LIST=---------------$finalSaveList");
+  //   print("final LIST length=---------------${finalSaveList.length}");
+  //   // transdetailsList.clear();
+  //   finalSavetoapi(finalSaveMap);
+  // }
 
   finalSavetoapi(Map<String, dynamic> mapp) async {
     var mapBody = jsonEncode(mapp);
@@ -339,10 +517,13 @@ class Controller extends ChangeNotifier {
       List proList = await TeaDB.instance.getProductListfromDB();
       print("prodList----${proList}");
       prodList.clear();
-      // prodList=[{"id": 1, "pid": 1, "product": "A"},{"id": 2, "pid": 2, "product": "B"},];
-      for (var item in proList) {
-        prodList.add(item);
-      }
+      prodList = [
+        {"id": 1, "pid": 1, "product": "A"},
+        // {"id": 2, "pid": 2, "product": "B"},
+      ];
+      // for (var item in proList) {
+      //   prodList.add(item);
+      // }
       var lengthh = prodList.length;
       colected = List.generate(lengthh, (index) => TextEditingController());
       damage = List.generate(lengthh, (index) => TextEditingController());
@@ -476,9 +657,12 @@ class Controller extends ChangeNotifier {
     }
   }
 
-  login(BuildContext context) {}
+  registeration(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("t_series", "CD");
+  }
+
   Future<UserModel?> getUserDetails(int index, String page) async {
-    // print("cid...............${cid}");
     try {
       downloading[index] = true;
       notifyListeners();
@@ -494,23 +678,27 @@ class Controller extends ChangeNotifier {
       print("User body ${body}");
       var map = jsonDecode(response.body);
       print("User Map--> $map");
-
-      await TeaDB.instance.deleteFromTableCommonQuery('UserMasterTable', "");
-      // List map = [
-      //   {"id": 1, "name": "Kannur", "status": 0},
-      //   {"id": 2, "name": "Thalassery", "status": 0},
-      //   {"id": 3, "name": "Mattannur", "status": 0}
-      // ];
-      for (var uss in map) {
-        print("userrr----${uss.length}");
-        usr = UserModel.fromJson(uss);
-        var userr = await TeaDB.instance.insertUserDetails(usr);
-        print("user inserted ${userr}");
+      if (map != null) {
+        await TeaDB.instance.deleteFromTableCommonQuery('UserMasterTable', "");
+        // List map = [
+        //   {"id": 1, "name": "Kannur", "status": 0},
+        //   {"id": 2, "name": "Thalassery", "status": 0},
+        //   {"id": 3, "name": "Mattannur", "status": 0}
+        // ];
+        for (var uss in map) {
+          print("userrr----${uss.length}");
+          usr = UserModel.fromJson(uss);
+          var userr = await TeaDB.instance.insertUserDetails(usr);
+          print("user inserted ${userr}");
+        }
+        downloading[index] = false;
+        downlooaded[index] = true;
+        getUsersfromDB();
+        notifyListeners();
+        return usr;
+      } else {
+        print("user map null");
       }
-      downloading[index] = false;
-      downlooaded[index] = true;
-      notifyListeners();
-      return usr;
     } catch (e) {
       print(e);
       return null;

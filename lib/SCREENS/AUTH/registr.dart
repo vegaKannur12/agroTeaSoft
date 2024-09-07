@@ -149,12 +149,15 @@ class _RegistrationState extends State<Registration> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue),
                           onPressed: () async {
+                            Provider.of<Controller>(context, listen: false)
+                                .getRouteDetails(0, "", context);
+
                             await Provider.of<Controller>(context,
                                     listen: false)
-                                .getRoute(" ", context);
+                                .getUserDetails(3, "");
                             await Provider.of<Controller>(context,
                                     listen: false)
-                                .getUserDetails(0, "");
+                                .registeration(context);
 
                             Navigator.of(context).push(
                               PageRouteBuilder(

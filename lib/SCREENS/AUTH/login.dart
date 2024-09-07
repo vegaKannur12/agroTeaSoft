@@ -19,7 +19,7 @@ class _USERLoginState extends State<USERLogin> {
   @override
   void initState() {
     // TODO: implement initState
-    
+
     Provider.of<Controller>(context, listen: false).getUsersfromDB();
     super.initState();
   }
@@ -263,9 +263,6 @@ class _USERLoginState extends State<USERLogin> {
                                     .verifyStaff(password.text, context);
                                 print("$i");
                                 if (i == 1) {
-                                  // SharedPreferences prefs =
-                                  //     await SharedPreferences.getInstance();
-                                  // prefs.setString("table_cat", "ALL");
                                   Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(

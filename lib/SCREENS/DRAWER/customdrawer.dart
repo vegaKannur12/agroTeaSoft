@@ -59,11 +59,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         pageBuilder: (_, __, ___) => DownLoadPage()),
                   );
                 } else if (index == 2) {
-                 await Provider.of<Controller>(context, listen: false)
+                  await Provider.of<Controller>(context, listen: false)
                       .gettransMastersfromDB();
-                await Provider.of<Controller>(context, listen: false)
+                  await Provider.of<Controller>(context, listen: false)
                       .gettransDetailsfromDB();
-                    await Provider.of<Controller>(context, listen: false).importFinal();
+                  await Provider.of<Controller>(context, listen: false)    // import code to be uncommented
+                      .importFinal(context,[]);
                   Navigator.of(context).push(
                     PageRouteBuilder(
                         opaque: false, // set to false

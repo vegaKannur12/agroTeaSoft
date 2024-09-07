@@ -577,7 +577,7 @@ class _CollectionPageState extends State<CollectionPage>
                           bagno_ctrl.text != "" &&
                           wgt_ctrl.text != "") {
                         int max = await TeaDB.instance
-                            .getMaxCommonQuery('TransMasterTable', 'tid', " ");
+                            .getMaxCommonQuery('TransMasterTable', 'trans_id', " ");
                         print("int max---- $max");
                         print(
                             "sel suppl----------------------${value.selectedsuplier.toString()}");
@@ -585,9 +585,11 @@ class _CollectionPageState extends State<CollectionPage>
                         final prefs = await SharedPreferences.getInstance();
                         int? supId = prefs.getInt("sel_accid");
                         String? supName = prefs.getString("sel_accnm");
+                         String? ts=prefs.getString("t_series");
+                         print("supl id : $supId , supName : $supName , tseris : $ts");
 
                         value.transMasterMap["trans_id"] = max;
-                        value.transMasterMap["trans_series"] = "AB";
+                        value.transMasterMap["trans_series"] = ts;
                         value.transMasterMap["trans_date"] = transactDate;
                         value.transMasterMap["trans_party_id"] =
                             supId.toString();
@@ -624,8 +626,7 @@ class _CollectionPageState extends State<CollectionPage>
                           print("pName---$product");
                           print(
                               "Coll----damg----totl---$collected---$damage---$total");
-
-                          transDetailstempMap["trans_det_mast_id"] = "AB$max";
+                          transDetailstempMap["trans_det_mast_id"] = "$ts$max";
                           transDetailstempMap["trans_det_prod_id"] = pid;
                           transDetailstempMap["trans_det_col_qty"] = collected;
                           transDetailstempMap["trans_det_dmg_qty"] = damage;
@@ -651,12 +652,13 @@ class _CollectionPageState extends State<CollectionPage>
 
                         await Provider.of<Controller>(context, listen: false)
                             .insertTransMastertoDB(value.transMasterMap);
-
                         value.transMasterMap["details"] =
                             value.transdetailsList;
                         print("transMaster Map-${value.transMasterMap}");
-                        await Provider.of<Controller>(context, listen: false)
-                            .savetransmaster(value.transMasterMap);
+                        value.transdetailsList.clear();
+                        // await Provider.of<Controller>(context, listen: false)
+                        //     .savetransmaster(value.transMasterMap);
+
                       } else {
                         CustomSnackbar snak = CustomSnackbar();
                         snak.showSnackbar(context, "Fill all fields", "");

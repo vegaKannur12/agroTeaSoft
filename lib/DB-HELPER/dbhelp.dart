@@ -81,7 +81,7 @@ class TeaDB {
     await db.execute('''
           CREATE TABLE TransMasterTable (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tid INTEGER NOT NULL,
+            trans_id INTEGER NOT NULL,
             trans_series TEXT,
             trans_date TEXT,
             trans_party_id TEXT,
@@ -164,7 +164,7 @@ class TeaDB {
   Future inserttransMasterDetails(TransMasterModel tdata) async {
     final db = await database;
     var query3 =
-        'INSERT INTO TransMasterTable(tid, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos ,trans_bag_weights ,trans_import_id ,company_id,branch_id ,user_session,log_user_id,log_date,status) VALUES(${tdata.tid}, "${tdata.trans_series}", "${tdata.trans_date}", "${tdata.trans_party_id}", "${tdata.trans_party_name}", "${tdata.trans_remark}", "${tdata.trans_bag_nos}", "${tdata.trans_bag_weights}", "${tdata.trans_import_id}", "${tdata.company_id}", "${tdata.branch_id}", "${tdata.user_session}", "${tdata.log_user_id}", "${tdata.log_date}", ${tdata.status})';
+        'INSERT INTO TransMasterTable(trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos ,trans_bag_weights ,trans_import_id ,company_id,branch_id ,user_session,log_user_id,log_date,status) VALUES(${tdata.tid}, "${tdata.trans_series}", "${tdata.trans_date}", "${tdata.trans_party_id}", "${tdata.trans_party_name}", "${tdata.trans_remark}", "${tdata.trans_bag_nos}", "${tdata.trans_bag_weights}", "${tdata.trans_import_id}", "${tdata.company_id}", "${tdata.branch_id}", "${tdata.user_session}", "${tdata.log_user_id}", "${tdata.log_date}", ${tdata.status})';
     var res = await db.rawInsert(query3);
     print(query3);
     print(res);
@@ -200,7 +200,7 @@ class TeaDB {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
     list = await db.rawQuery(
-        'SELECT tid,trans_series,trans_date,trans_party_id,trans_party_name,trans_remark, trans_bag_nos,trans_bag_weights,trans_import_id, company_id,branch_id,user_session, log_user_id,log_date,status FROM TransMasterTable where tid=$tid');
+        'SELECT trans_id,trans_series,trans_date,trans_party_id,trans_party_name,trans_remark, trans_bag_nos,trans_bag_weights,trans_import_id, company_id,branch_id,user_session, log_user_id,log_date,status FROM TransMasterTable where trans_id=$tid');
     print("List===$list");
     return list;
   }
@@ -235,7 +235,7 @@ class TeaDB {
   Future<List<Map<String, dynamic>>> gettransMasterfromDB() async {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
-    list = await db.rawQuery('SELECT tid, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable');
+    list = await db.rawQuery('SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable');
     return list;
   }
     Future<List<Map<String, dynamic>>> gettransDetailsfromDB() async {

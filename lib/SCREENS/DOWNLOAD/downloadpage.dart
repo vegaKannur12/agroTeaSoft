@@ -31,7 +31,7 @@ class _DownLoadPageState extends State<DownLoadPage> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.teal,
-         
+
           // title: Text("Company Details",style: TextStyle(fontSize: 20),),
         ),
         drawer: CustomDrawer(),
@@ -42,85 +42,125 @@ class _DownLoadPageState extends State<DownLoadPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                    height: size.height * 0.9,
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: value.downloadItems.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Ink(
-                              decoration: BoxDecoration(border: Border.all(color: Colors.black45),
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.white),
-                              child: ListTile(
-                                // leading: Icon(Icons.abc),
-                                title: Center(
-                                    child: Text(
-                                  value.downloadItems[index].toUpperCase(),
-                                  style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
-                                )),
-                                trailing: IconButton(
-                                  onPressed: value.downloading[index]
-                                      ? null // Disable the button while downloading
-                                      : () {
-                                          if (value.downloadItems[index] ==
-                                              "Route") {
-                                            Provider.of<Controller>(context,
-                                                    listen: false)
-                                                .getRouteDetails(index, "",context);
-                                          } else if (value
-                                                  .downloadItems[index] ==
-                                              "Supplier Details") {
-                                            Provider.of<Controller>(context,
-                                                    listen: false)
-                                                .getACMasterDetails(index, "");
-                                            //           Provider.of<Controller>(context, listen: false)
-                                            // .getSupplierfromDB(" ");
-                                          } 
-                                          else if (value
-                                                  .downloadItems[index] ==
-                                              "Product Details") 
-                                          {
-                                            Provider.of<Controller>(context,
-                                                    listen: false)
-                                                .getProductDetails(index, "");
-                                          } else if (value
-                                                  .downloadItems[index] ==
-                                              "User Details") 
-                                          {
-                                            Provider.of<Controller>(context,
-                                                    listen: false)
-                                                .getUserDetails(index, "");
-                                          } 
-                                          else 
-                                          {
-
-                                          }
-                                        },
-                                  icon: value.downloading[index]
-                                      ? SizedBox(
-                                          height:25,width: 25,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.0,
-                                            color: Colors.black,
-                                          ),
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: value.downloadItems.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black45),
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white),
+                          child: ListTile(
+                            // leading: Icon(Icons.abc),
+                            title: Center(
+                                child: Text(
+                              value.downloadItems[index].toUpperCase(),
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold),
+                            )),
+                            trailing: IconButton(
+                              onPressed: value.downloading[index]
+                                  ? null // Disable the button while downloading
+                                  : () {
+                                      if (value.downloadItems[index] ==
+                                          "Route") {
+                                        Provider.of<Controller>(context,
+                                                listen: false)
+                                            .getRouteDetails(
+                                                index, "", context);
+                                      } else if (value.downloadItems[index] ==
+                                          "Supplier Details") {
+                                        Provider.of<Controller>(context,
+                                                listen: false)
+                                            .getACMasterDetails(index, "");
+                                        //           Provider.of<Controller>(context, listen: false)
+                                        // .getSupplierfromDB(" ");
+                                      } else if (value.downloadItems[index] ==
+                                          "Product Details") {
+                                        Provider.of<Controller>(context,
+                                                listen: false)
+                                            .getProductDetails(index, "");
+                                      } else if (value.downloadItems[index] ==
+                                          "User Details") {
+                                        Provider.of<Controller>(context,
+                                                listen: false)
+                                            .getUserDetails(index, "");
+                                      } else {}
+                                    },
+                              icon: value.downloading[index]
+                                  ? SizedBox(
+                                      height: 25,
+                                      width: 25,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.0,
+                                        color: Colors.black,
+                                      ),
+                                    )
+                                  : value.downlooaded[index]
+                                      ? Icon(
+                                          Icons.done,
+                                          color: Colors.black,
                                         )
-                                      : value.downlooaded[index]
-                                          ? Icon(
-                                              Icons.done,
-                                              color: Colors.black,
-                                            )
-                                          : Icon(
-                                              Icons.download,
-                                              color: Colors.black,
-                                            ),
-                                ),
-                              ),
+                                      : Icon(
+                                          Icons.download,
+                                          color: Colors.black,
+                                        ),
                             ),
-                          );
-                        }))
+                          ),
+                        ),
+                      );
+                    }),
+                SizedBox(
+                  height: size.height * 0.1,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black45),
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white),
+                    child: ListTile(
+                    
+                      title: Center(
+                          child: Text(
+                        "Upload Collection ( ${value.importtransMasterList.length} )",
+                        style: TextStyle(
+                            color: Colors.red, fontWeight: FontWeight.bold),
+                      )),
+                      trailing: IconButton(
+                        onPressed: value.colluploading
+                            ? null // Disable the button while downloading
+                            : () async{
+                               await Provider.of<Controller>(context,
+                                listen: false) // import code to be uncommented
+                            .importFinal(context);
+                      },
+                      icon:
+                      value.colluploading
+                          ? SizedBox(
+                              height:25,width: 25,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.0,
+                                color: Colors.black,
+                              ),
+                            )
+                          : value.colluploaded
+                              ? Icon(
+                                  Icons.done,
+                                  color: Colors.green,
+                                )
+                              : Icon(
+                                  Icons.upload,
+                                  color: Colors.red,
+                                ),
+                    ),
+                  ),
+                ),)
               ],
             ),
           ),

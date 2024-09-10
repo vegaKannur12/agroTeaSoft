@@ -12,6 +12,7 @@ import 'package:tsupply/COMPONENTS/custom_snackbar.dart';
 import 'package:tsupply/COMPONENTS/external_dir.dart';
 import 'package:tsupply/DB-HELPER/dbhelp.dart';
 import 'package:tsupply/MODEL/accountMasterModel.dart';
+import 'package:tsupply/MODEL/advanceModel.dart';
 import 'package:tsupply/MODEL/prodModel.dart';
 import 'package:tsupply/MODEL/routeModel.dart';
 import 'package:tsupply/MODEL/transMasterModel.dart';
@@ -44,6 +45,7 @@ class Controller extends ChangeNotifier {
   AccountMasterModel acnt = AccountMasterModel();
   UserModel usr = UserModel();
   ProdModel prod = ProdModel();
+  AdvanceModel advmod = AdvanceModel();
   TransMasterModel transm = TransMasterModel();
   TransDetailModel transdt = TransDetailModel();
   String? selectedrut;
@@ -60,18 +62,23 @@ class Controller extends ChangeNotifier {
   List<Map<String, dynamic>> transmasterList = [];
   List<Map<String, dynamic>> finalSaveinnerList = [];
   List<Map<String, dynamic>> finalSaveList = [];
+  List<Map<String, dynamic>> finalBagList = [];
   Map<String, dynamic> transMasterMap = {};
   Map<String, dynamic> transDetailsMap = {};
   Map<String, dynamic> finalSaveMap = {};
-
+  Map<String, dynamic> finalBagMap = {};
+  bool finalbagListloading = false;
   List<bool> downlooaded = [];
   List<bool> downloading = [];
+  bool colluploaded = false;
+  bool colluploading = false;
   List<String> downloadItems = [
     "Route",
     "Supplier Details",
     "Product Details",
     "User Details",
   ];
+  
   List<TextEditingController> colected = [];
   List<TextEditingController> damage = [];
   List<TextEditingController> total = [];
@@ -148,29 +155,28 @@ class Controller extends ChangeNotifier {
     }
   }
 
-  savetransmaster(Map<String, dynamic> mstr) async {
-    filteredlist.clear();
-    finalSaveMap.clear();
-    notifyListeners();
-    print("trans_id----------${mstr["trans_id"].toString()}");
-    finalSaveinnerList.add(mstr);
-    finalSaveMap['transactions'] = finalSaveinnerList;
-    notifyListeners();
-    print("final LIST=---------------$finalSaveinnerList");
-    print(
-        "final MAP=---------------$finalSaveMap"); //  //  save-api format of transaction
+  // savetransmaster(Map<String, dynamic> mstr) async {
+  //   filteredlist.clear();
+  //   finalSaveMap.clear();
+  //   notifyListeners();
+  //   print("trans_id----------${mstr["trans_id"].toString()}");
+  //   finalSaveinnerList.add(mstr);
+  //   finalSaveMap['transactions'] = finalSaveinnerList;
+  //   notifyListeners();
+  //   print("final LIST=---------------$finalSaveinnerList");
+  //   print(
+  //       "final MAP=---------------$finalSaveMap"); //  //  save-api format of transaction
 
-    finalSavetoapi(finalSaveMap);
+  //   finalSavetoapi(finalSaveMap);
 
-    transdetailsList.clear();
-  }
+  //   transdetailsList.clear();
+  // }
 
-  importFinal(
-      BuildContext context, List? transfiltered) async {
+  importFinal(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ts = prefs.getString("t_series");
     String? unm = prefs.getString("uname");
-
+     colluploading=true;
     finalSaveList.clear();
     finalSaveMap.clear();
     finalSaveinnerList.clear(); // Clear finalSaveinnerList at the beginning
@@ -182,145 +188,269 @@ class Controller extends ChangeNotifier {
     for (var i = 0; i < importtransMasterList.length; i++) {
       // matermap.clear();
       // if (transfiltered!.isEmpty) {
-        Map<String, dynamic> matermap = {};
-        notifyListeners();
-        int transid = importtransMasterList[i]["trans_id"];
-        print("Processing trans_id: $transid");
-        String mastrid = "$ts$transid";
-        print("Generated mastrid: $mastrid");
-        matermap = Map.from(importtransMasterList[i]); //hidden_status
-        matermap["trans_id"] = importtransMasterList[i]["trans_id"];
-        matermap["trans_series"] = importtransMasterList[i]["trans_series"];
-        matermap["trans_date"] = importtransMasterList[i]["trans_date"];
-        matermap["trans_party_id"] = importtransMasterList[i]["trans_party_id"];
-        matermap["trans_party_name"] =
-            importtransMasterList[i]["trans_party_name"];
-        matermap["trans_remark"] = importtransMasterList[i]["trans_remark"];
-        matermap["trans_bag_nos"] = importtransMasterList[i]["trans_bag_nos"];
-        matermap["trans_bag_weights"] =
-            importtransMasterList[i]["trans_bag_weights"];
-        matermap["trans_import_id"] =
-            importtransMasterList[i]["trans_import_id"];
-        matermap["company_id"] = importtransMasterList[i]["company_id"];
-        matermap["branch_id"] = importtransMasterList[i]["branch_id"];
-        matermap["user_session"] = importtransMasterList[i]["user_session"];
-        matermap["log_user_id"] = importtransMasterList[i]["log_user_id"];
-        matermap["hidden_status"] = "0";
-        matermap["row_id"] = "0";
-        matermap["log_user_name"] = unm;
-        matermap["log_date"] = importtransMasterList[i]["log_date"];
-        matermap["status"] = importtransMasterList[i]["status"];
-        List<Map<String, dynamic>> detailsList = [];
-        for (var j = 0; j < importtransDetailsList.length; j++) {
-          print(
-              "Checking details for mastrid: $mastrid and trans_det_mast_id: ${importtransDetailsList[j]["trans_det_mast_id"]}");
-          // Check if the detail belongs to the current master entry
-          if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
-              mastrid) {
-            detailsList.add(importtransDetailsList[j]);
-          }
+      Map<String, dynamic> matermap = {};
+      notifyListeners();
+      int transid = importtransMasterList[i]["trans_id"];
+      print("Processing trans_id: $transid");
+      String mastrid = "$ts$transid";
+      print("Generated mastrid: $mastrid");
+      matermap = Map.from(importtransMasterList[i]); //hidden_status
+      matermap["trans_id"] = importtransMasterList[i]["trans_id"];
+      matermap["trans_series"] = importtransMasterList[i]["trans_series"];
+      matermap["trans_date"] = importtransMasterList[i]["trans_date"];
+      matermap["trans_party_id"] = importtransMasterList[i]["trans_party_id"];
+      matermap["trans_party_name"] =
+          importtransMasterList[i]["trans_party_name"];
+      matermap["trans_remark"] = importtransMasterList[i]["trans_remark"];
+      matermap["trans_bag_nos"] = importtransMasterList[i]["trans_bag_nos"];
+      matermap["trans_bag_weights"] =
+          importtransMasterList[i]["trans_bag_weights"];
+      matermap["trans_import_id"] = importtransMasterList[i]["trans_import_id"];
+      matermap["company_id"] = importtransMasterList[i]["company_id"];
+      matermap["branch_id"] = importtransMasterList[i]["branch_id"];
+      matermap["user_session"] = importtransMasterList[i]["user_session"];
+      matermap["log_user_id"] = importtransMasterList[i]["log_user_id"];
+      matermap["hidden_status"] = "0";
+      matermap["row_id"] = "0";
+      matermap["log_user_name"] = unm;
+      matermap["log_date"] = importtransMasterList[i]["log_date"];
+      matermap["status"] = importtransMasterList[i]["status"];
+      List<Map<String, dynamic>> detailsList = [];
+      for (var j = 0; j < importtransDetailsList.length; j++) {
+        print(
+            "Checking details for mastrid: $mastrid and trans_det_mast_id: ${importtransDetailsList[j]["trans_det_mast_id"]}");
+        // Check if the detail belongs to the current master entry
+        if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
+            mastrid) {
+          detailsList.add(importtransDetailsList[j]);
         }
+      }
 
-        // Attach details to the master entry if available
-        if (detailsList.isNotEmpty) {
-          matermap["details"] = detailsList;
-          finalSaveinnerList.add(matermap);
-          // matermap.clear();
-          print("Added master with details: $matermap");
-        } else {
-          print("No details found for trans_id: $transid");
-        }
-        notifyListeners();
-      // } else {
-      //   print(object)
-      //   for (var i = 0; i < transfiltered.length; i++) {
-      //     if (importtransMasterList[i]["trans_id"] == transfiltered[i]) {
-      //       Map<String, dynamic> matermap = {};
-      //       notifyListeners();
-      //       int transid = importtransMasterList[i]["trans_id"];
-      //       print("Processing trans_id: $transid");
-      //       String mastrid = "$ts$transid";
-      //       print("Generated mastrid: $mastrid");
-
-      //       matermap = Map.from(importtransMasterList[i]); //hidden_status
-      //       matermap["trans_id"] = importtransMasterList[i]["trans_id"];
-      //       matermap["trans_series"] = importtransMasterList[i]["trans_series"];
-      //       matermap["trans_date"] = importtransMasterList[i]["trans_date"];
-      //       matermap["trans_party_id"] =
-      //           importtransMasterList[i]["trans_party_id"];
-      //       matermap["trans_party_name"] =
-      //           importtransMasterList[i]["trans_party_name"];
-      //       matermap["trans_remark"] = importtransMasterList[i]["trans_remark"];
-      //       matermap["trans_bag_nos"] =
-      //           importtransMasterList[i]["trans_bag_nos"];
-      //       matermap["trans_bag_weights"] =
-      //           importtransMasterList[i]["trans_bag_weights"];
-      //       matermap["trans_import_id"] =
-      //           importtransMasterList[i]["trans_import_id"];
-      //       matermap["company_id"] = importtransMasterList[i]["company_id"];
-      //       matermap["branch_id"] = importtransMasterList[i]["branch_id"];
-      //       matermap["user_session"] = importtransMasterList[i]["user_session"];
-      //       matermap["log_user_id"] = importtransMasterList[i]["log_user_id"];
-      //       matermap["hidden_status"] = "0";
-      //       matermap["row_id"] = "0";
-      //       matermap["log_user_name"] = unm;
-      //       matermap["log_date"] = importtransMasterList[i]["log_date"];
-      //       matermap["status"] = importtransMasterList[i]["status"];
-
-      //       List<Map<String, dynamic>> detailsList = [];
-
-      //       for (var j = 0; j < importtransDetailsList.length; j++) {
-      //         print(
-      //             "Checking details for mastrid: $mastrid and trans_det_mast_id: ${importtransDetailsList[j]["trans_det_mast_id"]}");
-
-      //         // Check if the detail belongs to the current master entry
-      //         if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
-      //             mastrid) {
-      //           detailsList.add(importtransDetailsList[j]);
-      //         }
-      //       }
-
-      //       // Attach details to the master entry if available
-      //       if (detailsList.isNotEmpty) {
-      //         matermap["details"] = detailsList;
-      //         finalSaveinnerList.add(matermap);
-      //         // matermap.clear();
-      //         print("Added master with details: $matermap");
-      //       } else {
-      //         print("No details found for trans_id: $transid");
-      //       }
-      //       notifyListeners();
-      //     }
-      //   }
-
-      //   ///
-      // }
+      // Attach details to the master entry if available
+      if (detailsList.isNotEmpty) {
+        matermap["details"] = detailsList;
+        finalSaveinnerList.add(matermap);
+        // matermap.clear();
+        print("Added master with details: $matermap");
+      } else {
+        print("No details found for trans_id: $transid");
+      }
+      notifyListeners();
     }
-
     // Prepare final save map and list
     finalSaveMap['transactions'] = finalSaveinnerList;
     print("Final MAP: $finalSaveMap"); // API-ready map format
-
     finalSaveList.add(finalSaveMap);
     print("Final LIST: $finalSaveList");
     print("Final LIST length: ${finalSaveList.length}");
     notifyListeners();
-
     // Send data to API
-    finalSavetoapi(finalSaveMap);   //uncomented in future
+    finalSavetoAPI(finalSaveMap, context); //uncomented in future
   }
 
-  // importFinal() async {
+  finalSavetoAPI(Map<String, dynamic> mappfinal, BuildContext context) async {
+    print(jsonEncode("Save Map----- > $mappfinal"));
+
+    var mapBody = jsonEncode(mappfinal);
+    Uri url = Uri.parse("http://192.168.18.168:7000/api/Trans_Save");
+    Map body = {'json_arr': mapBody};
+    http.Response response = await http.post(
+      url,
+      body: body,
+    );
+    print("save body ${body}");
+    print("respons type ${response.runtimeType}");
+    Map map = jsonDecode(response.body);
+    // Map map = {
+    //   "flag": 0,
+    //   "msg": "Insertion Done",
+    //   "ret_arr": {2: "AB16", 3: "AB17"}
+    // };
+    print("save ResultMap--> $map");
+    if (map['flag'] == 0) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? ts = prefs.getString("t_series");
+      print("success");
+      Map retArr = map['ret_arr'];
+      print("-------$retArr");
+      retArr.forEach((key, value) async {
+        var acc = await TeaDB.instance.upadteCommonQuery(
+            'TransMasterTable', "trans_import_id='$value'", "trans_id=$key");
+        var acc1 = await TeaDB.instance.upadteCommonQuery('TransDetailsTable',
+            "trans_det_import_id='$value'", "trans_det_mast_id='$ts$key'");
+        print('Key: $key, Value: $value');
+      });
+       colluploading=false;
+       colluploaded=true;
+      await gettransMastersfromDB();
+      await gettransDetailsfromDB();
+      notifyListeners();
+      // await importFinal2(context, []);
+    } else {
+      CustomSnackbar snak = CustomSnackbar();
+      snak.showSnackbar(context, "Import Failed", "");
+    }
+  }
+
+  // importFinal2(BuildContext context, List? transfiltered) async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? ts = prefs.getString("t_series");
+  //   String? unm = prefs.getString("uname");
+  //   finalbagListloading = true;
+  //   finalBagList.clear();
+  //   finalBagMap.clear();
+  //   List<Map<String, dynamic>> innerlist = [];
+  //   // finalSaveinnerList.clear(); // Clear finalSaveinnerList at the beginning
+  //   notifyListeners();
+  //   print("Master List: $importtransMasterList");
+  //   print("Details List: $importtransDetailsList");
+
+  //   for (var i = 0; i < importtransMasterList.length; i++) {
+  //     // matermap.clear();
+  //     // if (transfiltered!.isEmpty) {
+  //     Map<String, dynamic> matermap = {};
+  //     notifyListeners();
+  //     int transid = importtransMasterList[i]["trans_id"];
+  //     print("Processing trans_id: $transid");
+  //     String mastrid = "$ts$transid";
+  //     print("Generated mastrid: $mastrid");
+  //     matermap = Map.from(importtransMasterList[i]); //hidden_status
+  //     matermap["trans_id"] = importtransMasterList[i]["trans_id"];
+  //     matermap["trans_series"] = importtransMasterList[i]["trans_series"];
+  //     matermap["trans_date"] = importtransMasterList[i]["trans_date"];
+  //     matermap["trans_party_id"] = importtransMasterList[i]["trans_party_id"];
+  //     matermap["trans_party_name"] =
+  //         importtransMasterList[i]["trans_party_name"];
+  //     matermap["trans_remark"] = importtransMasterList[i]["trans_remark"];
+  //     matermap["trans_bag_nos"] = importtransMasterList[i]["trans_bag_nos"];
+  //     matermap["trans_bag_weights"] =
+  //         importtransMasterList[i]["trans_bag_weights"];
+  //     matermap["trans_import_id"] = importtransMasterList[i]["trans_import_id"];
+  //     matermap["company_id"] = importtransMasterList[i]["company_id"];
+  //     matermap["branch_id"] = importtransMasterList[i]["branch_id"];
+  //     matermap["user_session"] = importtransMasterList[i]["user_session"];
+  //     matermap["log_user_id"] = importtransMasterList[i]["log_user_id"];
+  //     matermap["hidden_status"] = "0";
+  //     matermap["row_id"] = "0";
+  //     matermap["log_user_name"] = unm;
+  //     matermap["log_date"] = importtransMasterList[i]["log_date"];
+  //     matermap["status"] = importtransMasterList[i]["status"];
+  //     List<Map<String, dynamic>> detailsList = [];
+  //     for (var j = 0; j < importtransDetailsList.length; j++) {
+  //       print(
+  //           "Checking details for mastrid: $mastrid and trans_det_mast_id: ${importtransDetailsList[j]["trans_det_mast_id"]}");
+  //       // Check if the detail belongs to the current master entry
+  //       if (importtransDetailsList[j]["trans_det_mast_id"].toString() ==
+  //           mastrid) {
+  //         detailsList.add(importtransDetailsList[j]);
+  //       }
+  //     }
+
+  //     // Attach details to the master entry if available
+  //     if (detailsList.isNotEmpty) {
+  //       matermap["details"] = detailsList;
+  //       innerlist.add(matermap);
+  //       // matermap.clear();
+  //       print("Added master with details: $matermap");
+  //     } else {
+  //       print("No details found for trans_id: $transid");
+  //     }
+  //     notifyListeners();
+  //   }
+  //   // Prepare final save map and list
+  //   finalBagMap['transactions'] = innerlist;
+  //   print("FinalBag MAP: $finalBagMap"); // API-ready map format
+  //   finalBagList.add(finalBagMap);
+  //   print("finalBag LIST: $finalBagList");
+  //   print("finalBagList length: ${finalBagList.length}");
+  //   finalbagListloading = false;
+  //   notifyListeners();
+  //   // Send data to API
+  //   // finalSavetoapi(finalBagMap); //uncomented in future
+  // }
+
+  // finalsavePrepering(BuildContext context, List? transfiltered){
+  // }
+  // finalSavetoapiFiltered(BuildContext context, List<int>? transfiltered) async {
+  //   Map<String, dynamic> newMap = {"transactions": []};
+  //   // Step 1: Filter the transactions where trans_id is in the list transIdsToCheck
+  //   List<dynamic> matchingTransactions = finalBagMap['transactions']
+  //       .where(
+  //           (transaction) => transfiltered!.contains(transaction['trans_id']))
+  //       .toList();
+  //   print("mtachnng== $matchingTransactions");
+  //   // Step 2: Add the updated transaction to newMap if trans_id = 1 is found
+  //   if (matchingTransactions.isNotEmpty) {
+  //     matchingTransactions.forEach((transaction) {
+  //       newMap['transactions'].add(transaction); // Add other transactions as is
+  //     });
+  //   }
+
+  //   // Print the new map with updated transactions
+  //   print(jsonEncode("nnnnnnnnnnnnnn$newMap"));
+
+  //   var mapBody = jsonEncode(newMap);
+  //   Uri url = Uri.parse("http://192.168.18.168:7000/api/Trans_Save");
+  //   Map body = {'json_arr': mapBody};
+  //   http.Response response = await http.post(
+  //     url,
+  //     body: body,
+  //   );
+  //   print("save body ${body}");
+  //   print("respons type ${response.runtimeType}");
+  //   Map map = jsonDecode(response.body);
+  //   // Map map = {
+  //   //   "flag": 0,
+  //   //   "msg": "Insertion Done",
+  //   //   "ret_arr": {2: "AB16", 3: "AB17"}
+  //   // };
+  //   print("save Map--> $map");
+  //   if (map['flag'] == 0) {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? ts = prefs.getString("t_series");
+  //     print("success");
+  //     Map retArr = map['ret_arr'];
+  //     print("-------$retArr");
+  //     retArr.forEach((key, value) async {
+  //       var acc = await TeaDB.instance.upadteCommonQuery(
+  //           'TransMasterTable', "trans_import_id='$value'", "trans_id=$key");
+  //       var acc1 = await TeaDB.instance.upadteCommonQuery('TransDetailsTable',
+  //           "trans_det_import_id='$value'", "trans_det_mast_id='$ts$key'");
+  //       print('Key: $key, Value: $value');
+  //     });
+
+  //     await gettransMastersfromDB();
+  //     await gettransDetailsfromDB();
+  //     await importFinal2(context, []);
+  //   } else {
+  //     CustomSnackbar snak = CustomSnackbar();
+  //     snak.showSnackbar(context, "Import Failed", "");
+  //   }
+  // }
+
+  // deleteTrans(int t_id, BuildContext context) async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? ts = prefs.getString("t_series");
+  //   print('tran_id: $t_id');
+  //   var acc = await TeaDB.instance
+  //       .deleteFromTableCommonQuery('TransMasterTable', "trans_id=$t_id");
+  //   var acc1 = await TeaDB.instance.deleteFromTableCommonQuery(
+  //       'TransDetailsTable', "trans_det_mast_id='$ts$t_id'");
+  //   await gettransMastersfromDB();
+  //   await gettransDetailsfromDB();
+  //   await importFinal2(context, []);
+  //   notifyListeners();
+  // }
+// importFinal() async {
   //   SharedPreferences prefs = await SharedPreferences.getInstance();
   //   String? ts = prefs.getString("t_series");
   //   finalSaveList.clear();
   //   finalSaveMap.clear();
   //   notifyListeners();
-  //   Map<String, dynamic> matermap = {};
 
+  //   Map<String, dynamic> matermap = {};
   //   for (var i = 0; i < importtransMasterList.length; i++) {
   //     matermap.clear();
-
   //     notifyListeners();
   //     int transid = importtransMasterList[i]["trans_id"];
   //     print("transddd==$transid");
@@ -356,19 +486,6 @@ class Controller extends ChangeNotifier {
   //   // transdetailsList.clear();
   //   finalSavetoapi(finalSaveMap);
   // }
-
-  finalSavetoapi(Map<String, dynamic> mapp) async {
-    var mapBody = jsonEncode(mapp);
-    Uri url = Uri.parse("http://192.168.18.168:7000/api/Trans_Save");
-    Map body = {'json_arr': mapBody};
-    http.Response response = await http.post(
-      url,
-      body: body,
-    );
-    print("save body ${body}");
-    var map = jsonDecode(response.body);
-    print("save Map--> $map");
-  }
 
   gettransmasterfromdb(int tid) {}
 
@@ -531,7 +648,7 @@ class Controller extends ChangeNotifier {
       for (int i = 0; i < lengthh; i++) {
         colected[i].text = "0";
         damage[i].text = "0";
-        total[i].text = "10";
+        total[i].text = "0";
         print("colected 1st............$colected");
       }
       print("added to prodctList----${prodList}");
@@ -657,9 +774,17 @@ class Controller extends ChangeNotifier {
     }
   }
 
+  updateTotal(int index) {
+    double collectedValue = double.tryParse(colected[index].text) ?? 0.0;
+    double damageValue = double.tryParse(damage[index].text) ?? 0.0;
+    double totalValue = collectedValue - damageValue;
+    total[index].text = totalValue.toString();
+    notifyListeners();
+  }
+
   registeration(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString("t_series", "CD");
+    prefs.setString("t_series", "AB");
   }
 
   Future<UserModel?> getUserDetails(int index, String page) async {
@@ -716,6 +841,11 @@ class Controller extends ChangeNotifier {
   insertTransMastertoDB(Map<String, dynamic> transMasterM) async {
     transm = TransMasterModel.fromJson(transMasterM);
     var trn = await TeaDB.instance.inserttransMasterDetails(transm);
+  }
+
+  insertAdvancetoDB(Map<String, dynamic> advanceMap) async {
+    advmod = AdvanceModel.fromJson(advanceMap);
+    var adv = await TeaDB.instance.insertAdvancetoDB(advmod);
   }
 
   searchSupplier(String val) {

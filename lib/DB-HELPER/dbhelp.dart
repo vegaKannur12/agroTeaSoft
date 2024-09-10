@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:tsupply/MODEL/accountMasterModel.dart';
+import 'package:tsupply/MODEL/advanceModel.dart';
 import 'package:tsupply/MODEL/prodModel.dart';
 import 'package:tsupply/MODEL/routeModel.dart';
 import 'package:tsupply/MODEL/transMasterModel.dart';
@@ -118,6 +119,24 @@ class TeaDB {
             status INTEGER
           )
           ''');
+    await db.execute('''
+          CREATE TABLE AdvanceTable (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            trans_id INTEGER NOT NULL,
+            adv_series TEXT,
+            adv_date TEXT,
+            adv_party_id TEXT,   
+            adv_pay_mode TEXT,
+            adv_pay_acc TEXT,
+            adv_amt TEXT,
+            adv_narration TEXT,
+            adv_acc_date TEXT,
+            adv_import_id TEXT,
+            company_id TEXT,
+            branch_id TEXT,            
+            status INTEGER
+          )
+          ''');
   }
 
 ////////////////////// staff route details insertion /////////////////////
@@ -170,19 +189,29 @@ class TeaDB {
     print(res);
     return res;
   }
-   Future<int> insertTransDetail(TransDetailModel detail) async {
+
+  Future<int> insertTransDetail(TransDetailModel detail) async {
     final db = await instance.database;
-   
-    var res=await db.insert('TransDetailsTable', detail.toMap());
+
+    var res = await db.insert('TransDetailsTable', detail.toMap());
     print("trans det insert----todb---$res");
     return res;
-
   }
 
   Future inserttransDetails(TransDetailModel ddata) async {
     final db = await database;
     var query3 =
         'INSERT INTO TransDetailsTable(trans_det_mast_id,trans_det_prod_id,trans_det_col_qty ,trans_det_dmg_qty ,trans_det_net_qty,trans_det_unit ,trans_det_import_id ,company_id ,branch_id,log_user_id,user_session,log_date,status) VALUES("${ddata.trans_det_mast_id}", "${ddata.trans_det_prod_id}","${ddata.trans_det_col_qty}","${ddata.trans_det_dmg_qty}","${ddata.trans_det_net_qty}","${ddata.trans_det_unit}","${ddata.trans_det_import_id}","${ddata.company_id}","${ddata.branch_id}","${ddata.log_user_id}","${ddata.user_session}","${ddata.log_date}",${ddata.status})';
+    var res = await db.rawInsert(query3);
+    print(query3);
+    print(res);
+    return res;
+  }
+
+  Future insertAdvancetoDB(AdvanceModel adata) async {
+    final db = await database;
+    var query3 =
+        'INSERT INTO AdvanceTable(trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status) VALUES(${adata.adv_trans_id}, "${adata.adv_series}", "${adata.adv_date}", "${adata.adv_party_id}", "${adata.adv_pay_mode}", "${adata.adv_pay_acc}", "${adata.adv_amt}", "${adata.adv_narration}", "${adata.adv_acc_date}","${adata.adv_import_id}","${adata.company_id}","${adata.branch_id}",${adata.status})';
     var res = await db.rawInsert(query3);
     print(query3);
     print(res);
@@ -232,20 +261,22 @@ class TeaDB {
     list = await db.rawQuery('SELECT * FROM UserMasterTable');
     return list;
   }
+
   Future<List<Map<String, dynamic>>> gettransMasterfromDB() async {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
-    list = await db.rawQuery('SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable');
+    list = await db.rawQuery(
+        "SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable WHERE trans_import_id='0'");
     return list;
   }
-    Future<List<Map<String, dynamic>>> gettransDetailsfromDB() async {
+
+  Future<List<Map<String, dynamic>>> gettransDetailsfromDB() async {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
-    list = await db.rawQuery('SELECT trans_det_mast_id,trans_det_prod_id,trans_det_col_qty, trans_det_dmg_qty,trans_det_net_qty,trans_det_unit,trans_det_rate_id,trans_det_value,trans_det_import_id,company_id,branch_id,log_user_id,user_session,log_date,status FROM TransDetailsTable');
+    list = await db.rawQuery(
+        "SELECT trans_det_mast_id,trans_det_prod_id,trans_det_col_qty, trans_det_dmg_qty,trans_det_net_qty,trans_det_unit,trans_det_rate_id,trans_det_value,trans_det_import_id,company_id,branch_id,log_user_id,user_session,log_date,status FROM TransDetailsTable WHERE trans_det_import_id ='0'");
     return list;
   }
- 
-  
 
   upadteCommonQuery(String table, String fields, String condition) async {
     Database db = await instance.database;
@@ -256,8 +287,6 @@ class TeaDB {
     print("response-update------$res");
     return res;
   }
-
- 
 
   deleteFromTableCommonQuery(String table, String? condition) async {
     print("table--condition -$table---$condition");

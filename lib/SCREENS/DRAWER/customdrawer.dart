@@ -22,8 +22,8 @@ class DrawerItems {
 
 List itemList = [
   DrawerItems(title: "Dashboard", icon: Icon(Icons.dashboard)),
-  DrawerItems(title: "Download", icon: Icon(Icons.download_outlined)),
-  DrawerItems(title: "Import", icon: Icon(Icons.upload)),
+  DrawerItems(title: "Download/Upload", icon: Icon(Icons.download_outlined)),
+  // DrawerItems(title: "Import", icon: Icon(Icons.upload)),
   DrawerItems(title: "Logout", icon: Icon(Icons.exit_to_app_rounded)),
 ];
 
@@ -53,24 +53,32 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         pageBuilder: (_, __, ___) => CollectionPage()),
                   );
                 } else if (index == 1) {
+                   await Provider.of<Controller>(context, listen: false)
+                      .gettransMastersfromDB();
+                  await Provider.of<Controller>(context, listen: false)
+                      .gettransDetailsfromDB();
+                //   await Provider.of<Controller>(context, listen: false)    // import code to be uncommented
+                //       .importFinal2(context);
                   Navigator.of(context).push(
                     PageRouteBuilder(
                         opaque: false, // set to false
                         pageBuilder: (_, __, ___) => DownLoadPage()),
                   );
-                } else if (index == 2) {
-                  await Provider.of<Controller>(context, listen: false)
-                      .gettransMastersfromDB();
-                  await Provider.of<Controller>(context, listen: false)
-                      .gettransDetailsfromDB();
-                  await Provider.of<Controller>(context, listen: false)    // import code to be uncommented
-                      .importFinal(context,[]);
-                  Navigator.of(context).push(
-                    PageRouteBuilder(
-                        opaque: false, // set to false
-                        pageBuilder: (_, __, ___) => ImportPage()),
-                  );
-                } else if (index == 3) {
+                } 
+                // else if (index == 2) {
+                //   await Provider.of<Controller>(context, listen: false)
+                //       .gettransMastersfromDB();
+                //   await Provider.of<Controller>(context, listen: false)
+                //       .gettransDetailsfromDB();
+                //   await Provider.of<Controller>(context, listen: false)    // import code to be uncommented
+                //       .importFinal2(context);
+                //   Navigator.of(context).push(
+                //     PageRouteBuilder(
+                //         opaque: false, // set to false
+                //         pageBuilder: (_, __, ___) => ImportPage()),
+                //   );
+                // } 
+                else if (index == 2) {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.remove('u_id');
                   await prefs.remove('uname');

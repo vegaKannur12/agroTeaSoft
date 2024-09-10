@@ -20,59 +20,36 @@ class _SplashScreenState extends State<SplashScreen>
   String? fp;
   String? st_uname;
   String? st_pwd;
-  String? os;
-
+  String? t_series;
   ExternalDir externalDir = ExternalDir();
 
   navigate() async {
     await Future.delayed(Duration(seconds: 3), () async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       cid = prefs.getInt("c_id");
-      // os = prefs.getString("os");
+      t_series = prefs.getString("t_series");
       st_uname = prefs.getString("uname");
-     
       st_pwd = prefs.getString("upwd");
-     
-      print("auth-----$cid---$st_uname---$st_pwd--");
-    
 
-    
+      print("auth-----$cid---$st_uname---$st_pwd--");
       Navigator.push(
           context,
           PageRouteBuilder(
               opaque: false, // set to false
               pageBuilder: (_, __, ___) {
-                if (cid != null) 
-                {
-                  print("CID:$cid \n FP :$fp");
+                if (cid != null) {
+                  print("CID : $cid \n T_SERIES : $t_series");
                   if (st_uname != null && st_pwd != null) {
                     return CollectionPage();
-                  } 
-                  else 
-                  {
+                  } else {
                     return USERLogin();
                   }
-                } 
-                else 
-                {
+                } else {
                   return Registration();
                 }
               }));
     });
   }
-
-  // shared() async {
-  //   var status = await Permission.storage.status;
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   fp = prefs.getString("fp");
-  //   print("fingerPrint......$fp");
-
-  //   if (com_cid != null) {
-  //     Provider.of<AdminController>(context, listen: false)
-  //         .getCategoryReport(com_cid!);
-  //     Provider.of<Controller>(context, listen: false).adminDashboard(com_cid!);
-  //   }
-  // }
 
   @override
   void initState() {
@@ -80,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<Controller>(context, listen: false).getUsersfromDB();
-       Provider.of<Controller>(context, listen: false).setdownflag();
+      Provider.of<Controller>(context, listen: false).setdownflag();
     });
     // Provider.of<Controller>(context, listen: false).fetchMenusFromMenuTable();
     // Provider.of<Controller>(context, listen: false)

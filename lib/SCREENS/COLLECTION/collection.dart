@@ -31,6 +31,8 @@ class _CollectionPageState extends State<CollectionPage>
   late final TabController _tabController;
   TextEditingController bagno_ctrl = TextEditingController();
   TextEditingController wgt_ctrl = TextEditingController();
+  TextEditingController adv_amt_ctrl = TextEditingController();
+  TextEditingController adv_narratn_ctrl = TextEditingController();
   Map<String, dynamic>? selectedRoute;
   Map<String, dynamic>? selectedSpplierrr;
   TransDetailsBottomSheet tdetbottom = TransDetailsBottomSheet();
@@ -40,10 +42,12 @@ class _CollectionPageState extends State<CollectionPage>
   String? upwd;
   int? br_id;
   int? c_id;
+  TextEditingController dateInput = TextEditingController();
   @override
   void initState() {
     super.initState();
     getSharedpref();
+    dateInput.text = "";
     _tabController = TabController(length: 2, vsync: this);
     displaydate = DateFormat('dd-MM-yyyy').format(date);
     transactDate = DateFormat('yyyy-MM-dd').format(date);
@@ -137,8 +141,8 @@ class _CollectionPageState extends State<CollectionPage>
                       children: [
                         IconButton(
                             onPressed: () {
-                              if (selectedRoute != null) {
-                                print("---------$selectedRoute");
+                              if (value.selectedrut != null) {
+                                print("route selected---------> ${value.selectedrut}");
                                 supdio.showSupplierDialog(context);
                                 // buildSupplierPopupDialog(context, size);
                               } else {
@@ -328,13 +332,103 @@ class _CollectionPageState extends State<CollectionPage>
   }
 
   Widget advanceWidget(Size size) {
-    return Padding(
-        padding: EdgeInsets.only(top: 20, left: 15),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-              padding: EdgeInsets.only(left: 10, right: 10),
-              child: Row(children: [Text("Advance")]))
-        ]));
+    return Consumer<Controller>(
+        builder: (BuildContext context, Controller value, Widget? child) =>
+            Padding(
+                padding: EdgeInsets.only(top: 20, left: 15),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: 10, right: 10),
+                        child: Row(
+                          children: [
+                            // Container(
+                            //     padding: EdgeInsets.all(10),
+                            //     // color: Colors.yellow,
+                            //     width: size.width * 1 / 3.5,
+                            //     child: Text("Amount")),
+                            Flexible(
+                                child: TextField(
+                              controller: dateInput,
+                              //editing controller of this TextField
+                              decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  icon: Icon(Icons
+                                      .calendar_today), //icon of text field
+                                  labelText:
+                                      "Accountable Date" //label text of field
+                                  ),
+                              readOnly: true,
+                              //set it true, so that user will not able to edit text
+                              onTap: () async {
+                                DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(1950),
+                                    //DateTime.now() - not to allow to choose before today.
+                                    lastDate: DateTime(2100));
+
+                                if (pickedDate != null) {
+                                  print(
+                                      pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+                                  String formattedDate =
+                                      // DateFormat('yyyy-MM-dd')
+                                      DateFormat('dd-MM-yyyy')
+                                          .format(pickedDate);
+                                  String savedate = DateFormat('yyyy-MM-dd')
+                                      .format(pickedDate);
+                                  print(
+                                      formattedDate); //formatted date output using intl package =>  2021-03-16
+                                  setState(() {
+                                    dateInput.text =
+                                        formattedDate; //set output date to TextField value.
+                                  });
+                                } else {}
+                              },
+                            ))
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          right: 10,
+                          top: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                                padding: EdgeInsets.all(10),
+                                // color: Colors.yellow,
+                                width: size.width * 1 / 3.5,
+                                child: Text("Amount")),
+                            Flexible(
+                                child: customTextfield(
+                                    adv_amt_ctrl, 1, TextInputType.phone))
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          right: 10,
+                          top: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                                padding: EdgeInsets.all(10),
+                                // color: Colors.yellow,
+                                width: size.width * 1 / 3.5,
+                                child: Text("Narration")),
+                            Flexible(
+                                child: customTextfield(
+                                    adv_narratn_ctrl, 2, TextInputType.text))
+                          ],
+                        ),
+                      ),
+                    ])));
   }
 
   Widget collectionWidget(Size size) {
@@ -354,7 +448,9 @@ class _CollectionPageState extends State<CollectionPage>
                       // color: Colors.yellow,
                       width: size.width * 1 / 3.5,
                       child: Text("No.of Bag")),
-                  Flexible(child: customTextfield(bagno_ctrl))
+                  Flexible(
+                      child:
+                          customTextfield(bagno_ctrl, 1, TextInputType.phone))
                 ],
               ),
             ),
@@ -368,7 +464,8 @@ class _CollectionPageState extends State<CollectionPage>
                     width: size.width * 1 / 3.5,
                     child: Text("Weight"),
                   ),
-                  Flexible(child: customTextfield(wgt_ctrl))
+                  Flexible(
+                      child: customTextfield(wgt_ctrl, 1, TextInputType.phone))
                 ],
               ),
             ),
@@ -426,32 +523,14 @@ class _CollectionPageState extends State<CollectionPage>
                         Container(
                           width: size.width * 0.14,
                           child: TextFormField(
-                            decoration: InputDecoration(
-                                // focusedBorder: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: BorderSide(
-                                //     color: const Color.fromARGB(
-                                //         255, 199, 198, 198),
-                                //   ),
-                                // ),
-                                // enabledBorder: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: BorderSide(
-                                //     color: const Color.fromARGB(
-                                //         255, 199, 198, 198),
-                                //     width: 1.0,
-                                //   ),
-                                // ),
-                                // border: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: const BorderSide(
-                                //     color: Colors.black,
-                                //     width: 3,
-                                //   ),
-                                // ),
-                                hintText: ""),
+                            decoration: InputDecoration(hintText: ""),
                             onTap: () {
                               // Perform any action using the index
+                            },
+                            onChanged: (value) async {
+                              await Provider.of<Controller>(context,
+                                      listen: false)
+                                  .updateTotal(index);
                             },
                             style: TextStyle(
                               fontSize: 15.0,
@@ -470,32 +549,14 @@ class _CollectionPageState extends State<CollectionPage>
                         Container(
                           width: size.width * 0.14,
                           child: TextFormField(
-                            decoration: InputDecoration(
-                                // focusedBorder: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: BorderSide(
-                                //     color: const Color.fromARGB(
-                                //         255, 199, 198, 198),
-                                //   ),
-                                // ),
-                                // enabledBorder: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: BorderSide(
-                                //     color: const Color.fromARGB(
-                                //         255, 199, 198, 198),
-                                //     width: 1.0,
-                                //   ),
-                                // ),
-                                // border: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: const BorderSide(
-                                //     color: Colors.black,
-                                //     width: 3,
-                                //   ),
-                                // ),
-                                hintText: ""),
+                            decoration: InputDecoration(hintText: ""),
                             onTap: () {
                               // Perform any action using the index
+                            },
+                            onChanged: (value) async {
+                              await Provider.of<Controller>(context,
+                                      listen: false)
+                                  .updateTotal(index);
                             },
                             style: TextStyle(
                               fontSize: 15.0,
@@ -514,30 +575,8 @@ class _CollectionPageState extends State<CollectionPage>
                         Container(
                           width: size.width * 0.14,
                           child: TextFormField(
-                            decoration: InputDecoration(
-                                // focusedBorder: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: BorderSide(
-                                //     color: const Color.fromARGB(
-                                //         255, 199, 198, 198),
-                                //   ),
-                                // ),
-                                // enabledBorder: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: BorderSide(
-                                //     color: const Color.fromARGB(
-                                //         255, 199, 198, 198),
-                                //     width: 1.0,
-                                //   ),
-                                // ),
-                                // border: OutlineInputBorder(
-                                //   borderRadius: BorderRadius.circular(12),
-                                //   borderSide: const BorderSide(
-                                //     color: Colors.black,
-                                //     width: 3,
-                                //   ),
-                                // ),
-                                hintText: ""),
+                            readOnly: true,
+                            // decoration: InputDecoration(hintText: "",),
                             onTap: () {
                               // Perform any action using the index
                             },
@@ -545,10 +584,6 @@ class _CollectionPageState extends State<CollectionPage>
                               fontSize: 15.0,
                             ),
 
-                            keyboardType: TextInputType.number,
-                            // onSubmitted: (values) {
-                            //   // Perform any action using the index
-                            // },
                             textAlign: TextAlign.center,
                             controller: value.total[index],
                           ),
@@ -573,11 +608,11 @@ class _CollectionPageState extends State<CollectionPage>
                           value.selectedsuplier.toString().toLowerCase() !=
                               "null" &&
                           value.selectedsuplier.toString().isNotEmpty &&
-                          selectedRoute != null &&
+                          value.selectedrut != null &&
                           bagno_ctrl.text != "" &&
                           wgt_ctrl.text != "") {
-                        int max = await TeaDB.instance
-                            .getMaxCommonQuery('TransMasterTable', 'trans_id', " ");
+                        int max = await TeaDB.instance.getMaxCommonQuery(
+                            'TransMasterTable', 'trans_id', " ");
                         print("int max---- $max");
                         print(
                             "sel suppl----------------------${value.selectedsuplier.toString()}");
@@ -585,8 +620,9 @@ class _CollectionPageState extends State<CollectionPage>
                         final prefs = await SharedPreferences.getInstance();
                         int? supId = prefs.getInt("sel_accid");
                         String? supName = prefs.getString("sel_accnm");
-                         String? ts=prefs.getString("t_series");
-                         print("supl id : $supId , supName : $supName , tseris : $ts");
+                        String? ts = prefs.getString("t_series");
+                        print(
+                            "supl id : $supId , supName : $supName , tseris : $ts");
 
                         value.transMasterMap["trans_id"] = max;
                         value.transMasterMap["trans_series"] = ts;
@@ -649,16 +685,17 @@ class _CollectionPageState extends State<CollectionPage>
                         await Provider.of<Controller>(context, listen: false)
                             .insertTransDetailstoDB(value.transdetailsList);
                         print("transdetails List-${value.transdetailsList}");
-
                         await Provider.of<Controller>(context, listen: false)
                             .insertTransMastertoDB(value.transMasterMap);
                         value.transMasterMap["details"] =
                             value.transdetailsList;
                         print("transMaster Map-${value.transMasterMap}");
                         value.transdetailsList.clear();
+                        // bagno_ctrl.clear();
+                        // wgt_ctrl.clear();
+                        
                         // await Provider.of<Controller>(context, listen: false)
-                        //     .savetransmaster(value.transMasterMap);
-
+                        //     .getProductsfromDB();
                       } else {
                         CustomSnackbar snak = CustomSnackbar();
                         snak.showSnackbar(context, "Fill all fields", "");
@@ -691,10 +728,12 @@ class _CollectionPageState extends State<CollectionPage>
     return rr;
   }
 
-  TextFormField customTextfield(TextEditingController contr) {
+  TextFormField customTextfield(
+      TextEditingController contr, int? maxline, TextInputType typ) {
     return TextFormField(
-      keyboardType: TextInputType.phone,
+      keyboardType: typ,
       controller: contr,
+      maxLines: maxline,
       decoration: InputDecoration(
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),

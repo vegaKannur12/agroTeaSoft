@@ -38,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen>
               opaque: false, // set to false
               pageBuilder: (_, __, ___) {
                 if (cid != null) {
-                  print("CID : $cid \n T_SERIES : $t_series");
+                  print("CID : $cid \nT_SERIES : $t_series");
                   if (st_uname != null && st_pwd != null) {
                     return CollectionPage();
                   } else {

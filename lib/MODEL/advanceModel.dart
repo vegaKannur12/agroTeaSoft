@@ -1,6 +1,6 @@
 class AdvanceModel {
   int? adv_trans_id ;
-  String? adv_series ;
+  String? adv_series;
   String? adv_date;
   String? adv_party_id;
   String? adv_pay_mode;
@@ -11,7 +11,8 @@ class AdvanceModel {
   String? adv_import_id;
   String? company_id;
   String? branch_id;
-   int? status;
+  String? log_date;
+  int? status;
 
   AdvanceModel(
       {this.adv_trans_id ,
@@ -26,11 +27,12 @@ class AdvanceModel {
       this.company_id,
       this.branch_id,
       this.adv_acc_date,
+      this.log_date,
       this.status});
 
   AdvanceModel.fromJson(Map<String, dynamic> json) {
     adv_trans_id  = json['trans_id'];
-    adv_series  = json['adv_series '];
+    adv_series  = json['adv_series'];
     adv_date = json['adv_date'];
     adv_party_id = json['adv_party_id'];
     adv_pay_mode = json['adv_pay_mode'];
@@ -41,13 +43,14 @@ class AdvanceModel {
     company_id = json['company_id'];
     branch_id = json['branch_id'];
     adv_acc_date = json['adv_acc_date'];
+    log_date = json['log_date'];
     status = json['status'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
     data['trans_id'] = adv_trans_id ;
-    data['adv_series '] = adv_series ;
+    data['adv_series'] = adv_series ;
     data['adv_date'] = adv_date;
     data['adv_party_id'] = adv_party_id;
     data['adv_pay_mode'] = adv_pay_mode;
@@ -58,6 +61,7 @@ class AdvanceModel {
     data['company_id'] = company_id;
     data['branch_id'] = branch_id;
     data['adv_acc_date'] = adv_acc_date;
+    data['log_date'] = log_date;
     data['status'] = status;
     return data;
   }

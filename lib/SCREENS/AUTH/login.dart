@@ -16,10 +16,12 @@ class USERLogin extends StatefulWidget {
 class _USERLoginState extends State<USERLogin> {
   TextEditingController password = TextEditingController();
   bool loginLoad = false;
+   DateTime date = DateTime.now();
+   String? logdate;
   @override
   void initState() {
     // TODO: implement initState
-
+    logdate = date.toString();
     Provider.of<Controller>(context, listen: false).getUsersfromDB();
     super.initState();
   }
@@ -131,7 +133,7 @@ class _USERLoginState extends State<USERLogin> {
                                     print("${value.selectedUserMap}");
                                     Provider.of<Controller>(context,
                                             listen: false)
-                                        .updateUserDetails();
+                                        .updateUserDetails(logdate!);
                                   });
                                 },
                                 items: value.userList

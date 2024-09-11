@@ -1,5 +1,5 @@
 import 'dart:math';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -28,6 +28,7 @@ class _CollectionPageState extends State<CollectionPage>
   DateTime date = DateTime.now();
   String? displaydate;
   String? transactDate;
+  String? savedate;
   late final TabController _tabController;
   TextEditingController bagno_ctrl = TextEditingController();
   TextEditingController wgt_ctrl = TextEditingController();
@@ -51,6 +52,7 @@ class _CollectionPageState extends State<CollectionPage>
     _tabController = TabController(length: 2, vsync: this);
     displaydate = DateFormat('dd-MM-yyyy').format(date);
     transactDate = DateFormat('yyyy-MM-dd').format(date);
+    // date.toString();
     Provider.of<Controller>(context, listen: false).getProductsfromDB();
     Provider.of<Controller>(context, listen: false).getRoute(" ", context);
     print(("-----$displaydate"));
@@ -75,125 +77,137 @@ class _CollectionPageState extends State<CollectionPage>
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.lightGreen,
-        actions: [
-          IconButton(
-            onPressed: () async {
-              List<Map<String, dynamic>> list =
-                  await TeaDB.instance.getListOfTables();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TableList(list: list)),
-              );
-            },
-            icon: Icon(Icons.table_bar),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Text(
-              displaydate.toString(),
-              style: TextStyle(
-                  color: Color.fromARGB(255, 99, 42, 145),
-                  fontWeight: FontWeight.bold),
+    return WillPopScope(
+      onWillPop: () => _onBackPressed(context),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.lightGreen,
+          actions: [
+            IconButton(
+              onPressed: () async {
+                List<Map<String, dynamic>> list =
+                    await TeaDB.instance.getListOfTables();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => TableList(list: list)),
+                );
+              },
+              icon: Icon(Icons.table_bar),
             ),
-          )
-        ],
-      ),
-      drawer: CustomDrawer(),
-      body: Consumer<Controller>(
-        builder: (BuildContext context, Controller value, Widget? child) =>
-            ListView(
-          shrinkWrap: true,
-          children: [
-            Container(
-              color: Colors.lightGreen,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 11.0, left: 08),
-                    child: Row(
-                      children: [
-                        IconButton(
-                            onPressed: () {
-                              buildRoutePopupDialog(context, size);
-                            },
-                            icon: Icon(Icons.location_on_outlined)),
-                        Container(
-                          padding: EdgeInsets.all(7),
-                          // decoration: BoxDecoration(
-                          //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
-                          child: Text(
-                            value.selectedrut == null
-                                ? "Choose Route"
-                                : value.selectedrut!.toUpperCase(),
-                            style: TextStyle(color: Colors.black, fontSize: 18),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        top: 11.0, left: 08, bottom: 11.0),
-                    child: Row(
-                      children: [
-                        IconButton(
-                            onPressed: () {
-                              if (value.selectedrut != null) {
-                                print("route selected---------> ${value.selectedrut}");
-                                supdio.showSupplierDialog(context);
-                                // buildSupplierPopupDialog(context, size);
-                              } else {
-                                CustomSnackbar snak = CustomSnackbar();
-                                snak.showSnackbar(context, "Select Route", "");
-                              }
-                            },
-                            icon: Icon(Icons.person)),
-                        Container(
-                          padding: EdgeInsets.all(7),
-                          // decoration: BoxDecoration(
-                          //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
-                          child: Text(
-                            value.selectedsuplier == null
-                                ? "Choose Supplier"
-                                : value.selectedsuplier!.toUpperCase(),
-                            style: TextStyle(color: Colors.black, fontSize: 18),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 60,
-                    width: size.width,
-                    child: TabBar(controller: _tabController, tabs: [
-                      Tab(
-                        text: 'Collection',
-                        // icon: Icon(Icons.settings_input_composite_outlined)
-                      ),
-                      Tab(
-                        text: 'Advance',
-                        // icon: Icon(Icons.money_rounded),
-                      ),
-                    ]),
-                  )
-                ],
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Text(
+                displaydate.toString(),
+                style: TextStyle(
+                    color: Color.fromARGB(255, 99, 42, 145),
+                    fontWeight: FontWeight.bold),
               ),
-            ),
-            SizedBox(
-              height: size.height * 0.75,
-              child: TabBarView(
-                // physics:NeverScrollableScrollPhysics(),
-                controller: _tabController,
-                children: <Widget>[
-                  collectionWidget(size),
-                  advanceWidget(size),
-                ],
-              ),
-            ),
+            )
           ],
+        ),
+        drawer: CustomDrawer(),
+        body: Consumer<Controller>(
+          builder: (BuildContext context, Controller value, Widget? child) =>
+              Column(
+            // shrinkWrap: true,
+            children: [
+              Container(
+                color: Colors.lightGreen,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 11.0, left: 08),
+                      child: Row(
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                buildRoutePopupDialog(context, size);
+                              },
+                              icon: Icon(Icons.location_on_outlined)),
+                          Container(
+                            padding: EdgeInsets.all(7),
+                            // decoration: BoxDecoration(
+                            //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
+                            child: Text(
+                              value.selectedrut == null
+                                  ? "Choose Route"
+                                  : value.selectedrut!.toUpperCase(),
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 18),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: 11.0, left: 08, bottom: 11.0),
+                      child: Row(
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                if (value.selectedrut != null) {
+                                  print(
+                                      "route selected---------> ${value.selectedrut}");
+                                  supdio.showSupplierDialog(context);
+                                  // buildSupplierPopupDialog(context, size);
+                                } else {
+                                  CustomSnackbar snak = CustomSnackbar();
+                                  snak.showSnackbar(
+                                      context, "Select Route", "");
+                                }
+                              },
+                              icon: Icon(Icons.person)),
+                          Container(
+                            padding: EdgeInsets.all(7),
+                            // decoration: BoxDecoration(
+                            //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
+                            child: Text(
+                              value.selectedsuplier == null
+                                  ? "Choose Supplier"
+                                  : value.selectedsuplier!.toUpperCase(),
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 18),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 60,
+                      width: size.width,
+                      child: TabBar(controller: _tabController, tabs: [
+                        Tab(
+                          text: 'Collection',
+                          // icon: Icon(Icons.settings_input_composite_outlined)
+                        ),
+                        Tab(
+                          text: 'Advance',
+                          // icon: Icon(Icons.money_rounded),
+                        ),
+                      ]),
+                    )
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: SizedBox(
+                    height: size.height * 0.75,
+                    child: TabBarView(
+                      // physics:NeverScrollableScrollPhysics(),
+                      controller: _tabController,
+                      children: <Widget>[
+                        collectionWidget(size),
+                        advanceWidget(size),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -376,7 +390,7 @@ class _CollectionPageState extends State<CollectionPage>
                                       // DateFormat('yyyy-MM-dd')
                                       DateFormat('dd-MM-yyyy')
                                           .format(pickedDate);
-                                  String savedate = DateFormat('yyyy-MM-dd')
+                                  savedate = DateFormat('yyyy-MM-dd')
                                       .format(pickedDate);
                                   print(
                                       formattedDate); //formatted date output using intl package =>  2021-03-16
@@ -428,6 +442,115 @@ class _CollectionPageState extends State<CollectionPage>
                           ],
                         ),
                       ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          right: 10,
+                          top: 30,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: size.width * 0.7,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                ),
+                                onPressed: () async {
+                                  if (value.selectedsuplier != "" &&
+                                      value.selectedsuplier
+                                              .toString()
+                                              .toLowerCase() !=
+                                          "null" &&
+                                      value.selectedsuplier
+                                          .toString()
+                                          .isNotEmpty &&
+                                      value.selectedrut != null &&
+                                      adv_amt_ctrl.text != "" &&
+                                      adv_narratn_ctrl.text != "") {
+                                    int max = await TeaDB.instance
+                                        .getMaxCommonQuery(
+                                            'AdvanceTable', 'trans_id', " ");
+                                    print("int max---- $max");
+
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    prefs.setString(
+                                        "log_date", date.toString());
+                                    int? supId = prefs.getInt("sel_accid");
+                                    String? supName =
+                                        prefs.getString("sel_accnm");
+                                    String? ts = prefs.getString("t_series");
+                                    print(
+                                        "supl id: $supId , supName: $supName , tseris: $ts");
+
+                                    value.advanceMasterMap["trans_id"] = max;
+                                    value.advanceMasterMap["adv_series"] = ts;
+                                    value.advanceMasterMap["adv_date"] =
+                                        date.toString();
+                                    // transactDate;
+                                    value.advanceMasterMap["adv_party_id"] =
+                                        supId.toString();
+                                    value.advanceMasterMap["adv_pay_mode"] =
+                                        "1";
+                                    value.advanceMasterMap["adv_pay_acc"] = "";
+                                    value.advanceMasterMap["adv_amt"] =
+                                        adv_amt_ctrl.text.toString();
+                                    value.advanceMasterMap["adv_narration"] =
+                                        adv_narratn_ctrl.text.toString();
+                                    value.advanceMasterMap["adv_acc_date"] =
+                                        savedate.toString();
+                                    // "25,21,65,985";
+                                    value.advanceMasterMap["adv_import_id"] =
+                                        "0";
+                                    value.advanceMasterMap["company_id"] =
+                                        c_id.toString();
+                                    value.advanceMasterMap["branch_id"] =
+                                        br_id.toString();
+                                    value.advanceMasterMap["log_date"] =
+                                        date.toString();
+                                    value.advanceMasterMap["status"] = 0;
+
+                                    await Provider.of<Controller>(context,
+                                            listen: false)
+                                        .insertAdvancetoDB(
+                                            value.advanceMasterMap);
+                                    print(
+                                        "advanceMasterMap---> ${value.advanceMasterMap}");
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.green,
+                                        msg: "Advance Added",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.CENTER,
+                                        timeInSecForIosWeb: 1,
+                                        textColor: Colors.black,
+                                        fontSize: 16.0);
+                                    adv_amt_ctrl.clear();
+                                    adv_narratn_ctrl.clear();
+                                    dateInput.clear();
+                                    savedate = "";
+                                  } else {
+                                    CustomSnackbar snak = CustomSnackbar();
+                                    snak.showSnackbar(
+                                        context, "Fill all fields", "");
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    "ADD ADVANCE",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     ])));
   }
 
@@ -576,14 +699,16 @@ class _CollectionPageState extends State<CollectionPage>
                           width: size.width * 0.14,
                           child: TextFormField(
                             readOnly: true,
-                            // decoration: InputDecoration(hintText: "",),
+                            decoration: InputDecoration(
+                              hintText: "",
+                              border: InputBorder.none,
+                            ),
                             onTap: () {
                               // Perform any action using the index
                             },
                             style: TextStyle(
                               fontSize: 15.0,
                             ),
-
                             textAlign: TextAlign.center,
                             controller: value.total[index],
                           ),
@@ -594,123 +719,144 @@ class _CollectionPageState extends State<CollectionPage>
                 }).toList(),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: size.width * 0.4,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                    ),
-                    onPressed: () async {
-                      if (value.selectedsuplier != "" &&
-                          value.selectedsuplier.toString().toLowerCase() !=
-                              "null" &&
-                          value.selectedsuplier.toString().isNotEmpty &&
-                          value.selectedrut != null &&
-                          bagno_ctrl.text != "" &&
-                          wgt_ctrl.text != "") {
-                        int max = await TeaDB.instance.getMaxCommonQuery(
-                            'TransMasterTable', 'trans_id', " ");
-                        print("int max---- $max");
-                        print(
-                            "sel suppl----------------------${value.selectedsuplier.toString()}");
-                        // int transid = await randomNo();
-                        final prefs = await SharedPreferences.getInstance();
-                        int? supId = prefs.getInt("sel_accid");
-                        String? supName = prefs.getString("sel_accnm");
-                        String? ts = prefs.getString("t_series");
-                        print(
-                            "supl id : $supId , supName : $supName , tseris : $ts");
+            Padding(
+              padding: EdgeInsets.only(
+                left: 10,
+                right: 10,
+                top: 30,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: size.width * 0.7,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                      ),
+                      onPressed: () async {
+                        if (value.selectedsuplier != "" &&
+                            value.selectedsuplier.toString().toLowerCase() !=
+                                "null" &&
+                            value.selectedsuplier.toString().isNotEmpty &&
+                            value.selectedrut != null &&
+                            bagno_ctrl.text != "" &&
+                            wgt_ctrl.text != "") {
+                          int max = await TeaDB.instance.getMaxCommonQuery(
+                              'TransMasterTable', 'trans_id', " ");
+                          print("int max---- $max");
+                          print(
+                              "sel suppl----------------------${value.selectedsuplier.toString()}");
+                          // int transid = await randomNo();
+                          final prefs = await SharedPreferences.getInstance();
+                          int? supId = prefs.getInt("sel_accid");
+                          String? supName = prefs.getString("sel_accnm");
+                          String? ts = prefs.getString("t_series");
 
-                        value.transMasterMap["trans_id"] = max;
-                        value.transMasterMap["trans_series"] = ts;
-                        value.transMasterMap["trans_date"] = transactDate;
-                        value.transMasterMap["trans_party_id"] =
-                            supId.toString();
-                        value.transMasterMap["trans_party_name"] = supName;
-                        value.transMasterMap["trans_remark"] = "Remarks";
-                        value.transMasterMap["trans_bag_nos"] =
-                            bagno_ctrl.text.toString();
-                        value.transMasterMap["trans_bag_weights"] =
-                            wgt_ctrl.text.toString();
-                        // "25,21,65,985";
-                        value.transMasterMap["trans_import_id"] = "0";
-                        value.transMasterMap["company_id"] = c_id.toString();
-                        value.transMasterMap["branch_id"] = br_id.toString();
-                        value.transMasterMap["user_session"] = "245";
-                        value.transMasterMap["log_user_id"] = u_id.toString();
-                        value.transMasterMap["hidden_status"] = "0";
-                        value.transMasterMap["row_id"] = "0";
-                        value.transMasterMap["log_user_name"] =
-                            uname.toString();
-                        value.transMasterMap["log_date"] = transactDate;
-                        value.transMasterMap["status"] = 0;
-                        for (int i = 0; i < value.prodList.length; i++) {
-                          Map<String, dynamic> transDetailstempMap = {};
-                          int pid = value.prodList[i]['pid'];
-                          String product = value.prodList[i]
-                              ['product']; // Get the product name
-                          String collected =
-                              value.colected[i].text; // Get the collected value
-                          String damage =
-                              value.damage[i].text; // Get the damage value
-                          String total =
-                              value.total[i].text; // Get the total value
-                          print("pid---$pid");
-                          print("pName---$product");
                           print(
-                              "Coll----damg----totl---$collected---$damage---$total");
-                          transDetailstempMap["trans_det_mast_id"] = "$ts$max";
-                          transDetailstempMap["trans_det_prod_id"] = pid;
-                          transDetailstempMap["trans_det_col_qty"] = collected;
-                          transDetailstempMap["trans_det_dmg_qty"] = damage;
-                          transDetailstempMap["trans_det_net_qty"] = total;
-                          transDetailstempMap["trans_det_unit"] = "KG";
-                          transDetailstempMap["trans_det_rate_id"] = "0";
-                          transDetailstempMap["trans_det_value"] = "0";
-                          transDetailstempMap["trans_det_import_id"] = "0";
-                          transDetailstempMap["company_id"] = c_id.toString();
-                          transDetailstempMap["branch_id"] = br_id.toString();
-                          transDetailstempMap["log_user_id"] = u_id.toString();
-                          transDetailstempMap["user_session"] = "245";
-                          transDetailstempMap["log_date"] = transactDate;
-                          transDetailstempMap["status"] = 0;
-                          // Create a ProductData object and add it to the list
-                          print(
-                              "transdetails Map -----$i---${transDetailstempMap}");
-                          value.transdetailsList.add(transDetailstempMap);
+                              "supl id : $supId , supName : $supName , tseris : $ts");
+
+                          value.transMasterMap["trans_id"] = max;
+                          value.transMasterMap["trans_series"] = ts;
+                          value.transMasterMap["trans_date"] = transactDate;
+                          value.transMasterMap["trans_party_id"] =
+                              supId.toString();
+                          value.transMasterMap["trans_party_name"] = supName;
+                          value.transMasterMap["trans_remark"] = "Remarks";
+                          value.transMasterMap["trans_bag_nos"] =
+                              bagno_ctrl.text.toString();
+                          value.transMasterMap["trans_bag_weights"] =
+                              wgt_ctrl.text.toString();
+                          // "25,21,65,985";
+                          value.transMasterMap["trans_import_id"] = "0";
+                          value.transMasterMap["company_id"] = c_id.toString();
+                          value.transMasterMap["branch_id"] = br_id.toString();
+                          value.transMasterMap["user_session"] = "245";
+                          value.transMasterMap["log_user_id"] = u_id.toString();
+                          value.transMasterMap["hidden_status"] = "0";
+                          value.transMasterMap["row_id"] = "0";
+                          value.transMasterMap["log_user_name"] =
+                              uname.toString();
+                          value.transMasterMap["log_date"] = date.toString();
+                          value.transMasterMap["status"] = 0;
+                          for (int i = 0; i < value.prodList.length; i++) {
+                            Map<String, dynamic> transDetailstempMap = {};
+                            int pid = value.prodList[i]['pid'];
+                            String product = value.prodList[i]
+                                ['product']; // Get the product name
+                            String collected = value
+                                .colected[i].text; // Get the collected value
+                            String damage =
+                                value.damage[i].text; // Get the damage value
+                            String total =
+                                value.total[i].text; // Get the total value
+                            print("pid---$pid");
+                            print("pName---$product");
+                            print(
+                                "Coll----damg----totl---$collected---$damage---$total");
+                            transDetailstempMap["trans_det_mast_id"] =
+                                "$ts$max";
+                            transDetailstempMap["trans_det_prod_id"] = pid;
+                            transDetailstempMap["trans_det_col_qty"] =
+                                collected;
+                            transDetailstempMap["trans_det_dmg_qty"] = damage;
+                            transDetailstempMap["trans_det_net_qty"] = total;
+                            transDetailstempMap["trans_det_unit"] = "KG";
+                            transDetailstempMap["trans_det_rate_id"] = "0";
+                            transDetailstempMap["trans_det_value"] = "0";
+                            transDetailstempMap["trans_det_import_id"] = "0";
+                            transDetailstempMap["company_id"] = c_id.toString();
+                            transDetailstempMap["branch_id"] = br_id.toString();
+                            transDetailstempMap["log_user_id"] =
+                                u_id.toString();
+                            transDetailstempMap["user_session"] = "245";
+                            transDetailstempMap["log_date"] = date.toString();
+                            transDetailstempMap["status"] = 0;
+                            // Create a ProductData object and add it to the list
+                            print(
+                                "transdetails Map -----$i---${transDetailstempMap}");
+                            value.transdetailsList.add(transDetailstempMap);
+                          }
+                          await Provider.of<Controller>(context, listen: false)
+                              .insertTransDetailstoDB(value.transdetailsList);
+                          print("transdetails List-${value.transdetailsList}");
+                          await Provider.of<Controller>(context, listen: false)
+                              .insertTransMastertoDB(value.transMasterMap);
+                          value.transMasterMap["details"] =
+                              value.transdetailsList;
+                          print("transMaster Map-${value.transMasterMap}");
+                          value.transdetailsList.clear();
+                          Fluttertoast.showToast(
+                              backgroundColor: Colors.green,
+                              msg: "Collection Added",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.CENTER,
+                              timeInSecForIosWeb: 1,
+                              textColor: Colors.black,
+                              fontSize: 16.0);
+                          bagno_ctrl.clear();
+                          wgt_ctrl.clear();
+                          await Provider.of<Controller>(context, listen: false)
+                              .getProductsfromDB();
+                        } else {
+                          CustomSnackbar snak = CustomSnackbar();
+                          snak.showSnackbar(context, "Fill all fields", "");
                         }
-                        await Provider.of<Controller>(context, listen: false)
-                            .insertTransDetailstoDB(value.transdetailsList);
-                        print("transdetails List-${value.transdetailsList}");
-                        await Provider.of<Controller>(context, listen: false)
-                            .insertTransMastertoDB(value.transMasterMap);
-                        value.transMasterMap["details"] =
-                            value.transdetailsList;
-                        print("transMaster Map-${value.transMasterMap}");
-                        value.transdetailsList.clear();
-                        // bagno_ctrl.clear();
-                        // wgt_ctrl.clear();
-                        
-                        // await Provider.of<Controller>(context, listen: false)
-                        //     .getProductsfromDB();
-                      } else {
-                        CustomSnackbar snak = CustomSnackbar();
-                        snak.showSnackbar(context, "Fill all fields", "");
-                      }
-                    },
-                    child: Text(
-                      "ADD ITEM",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white,
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          "ADD COLLECTION",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             )
           ],
         ),
@@ -758,4 +904,38 @@ class _CollectionPageState extends State<CollectionPage>
           hintText: ""),
     );
   }
+}
+
+Future<bool> _onBackPressed(BuildContext context) async {
+  return await showDialog(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        // title: const Text('AlertDialog Title'),
+        content: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: ListBody(
+            children: const <Widget>[
+              Text('Want to exit from this app'),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('cancel'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Text('Ok'),
+            onPressed: () {
+              exit(0);
+            },
+          ),
+        ],
+      );
+    },
+  );
 }

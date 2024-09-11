@@ -133,7 +133,8 @@ class TeaDB {
             adv_acc_date TEXT,
             adv_import_id TEXT,
             company_id TEXT,
-            branch_id TEXT,            
+            branch_id TEXT,  
+            log_date TEXT,          
             status INTEGER
           )
           ''');
@@ -211,7 +212,7 @@ class TeaDB {
   Future insertAdvancetoDB(AdvanceModel adata) async {
     final db = await database;
     var query3 =
-        'INSERT INTO AdvanceTable(trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status) VALUES(${adata.adv_trans_id}, "${adata.adv_series}", "${adata.adv_date}", "${adata.adv_party_id}", "${adata.adv_pay_mode}", "${adata.adv_pay_acc}", "${adata.adv_amt}", "${adata.adv_narration}", "${adata.adv_acc_date}","${adata.adv_import_id}","${adata.company_id}","${adata.branch_id}",${adata.status})';
+        'INSERT INTO AdvanceTable(trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,log_date,status) VALUES(${adata.adv_trans_id}, "${adata.adv_series}", "${adata.adv_date}", "${adata.adv_party_id}", "${adata.adv_pay_mode}", "${adata.adv_pay_acc}", "${adata.adv_amt}", "${adata.adv_narration}", "${adata.adv_acc_date}","${adata.adv_import_id}","${adata.company_id}","${adata.branch_id}","${adata.log_date}",${adata.status})';
     var res = await db.rawInsert(query3);
     print(query3);
     print(res);
@@ -262,19 +263,45 @@ class TeaDB {
     return list;
   }
 
-  Future<List<Map<String, dynamic>>> gettransMasterfromDB() async {
+  Future<List<Map<String, dynamic>>> gettransMasterfromDB(
+      String? conditn) async {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
-    list = await db.rawQuery(
-        "SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable WHERE trans_import_id='0'");
+    if (conditn == "yes") {
+      list = await db.rawQuery(
+          "SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable WHERE trans_import_id='0'");
+    } else {
+      list = await db.rawQuery(
+          "SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable");
+    }
     return list;
   }
 
-  Future<List<Map<String, dynamic>>> gettransDetailsfromDB() async {
+  Future<List<Map<String, dynamic>>> gettransDetailsfromDB(
+      String? conditn) async {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
-    list = await db.rawQuery(
-        "SELECT trans_det_mast_id,trans_det_prod_id,trans_det_col_qty, trans_det_dmg_qty,trans_det_net_qty,trans_det_unit,trans_det_rate_id,trans_det_value,trans_det_import_id,company_id,branch_id,log_user_id,user_session,log_date,status FROM TransDetailsTable WHERE trans_det_import_id ='0'");
+    if (conditn == "yes") {
+      list = await db.rawQuery(
+          "SELECT trans_det_mast_id,trans_det_prod_id,trans_det_col_qty, trans_det_dmg_qty,trans_det_net_qty,trans_det_unit,trans_det_rate_id,trans_det_value,trans_det_import_id,company_id,branch_id,log_user_id,user_session,log_date,status FROM TransDetailsTable WHERE trans_det_import_id ='0'");
+    } else {
+      list = await db.rawQuery(
+          "SELECT trans_det_mast_id,trans_det_prod_id,trans_det_col_qty, trans_det_dmg_qty,trans_det_net_qty,trans_det_unit,trans_det_rate_id,trans_det_value,trans_det_import_id,company_id,branch_id,log_user_id,user_session,log_date,status FROM TransDetailsTable");
+    }
+    return list;
+  }
+
+  Future<List<Map<String, dynamic>>> getAdvanceDetailsfromDB(
+      String? conditn) async {
+    List<Map<String, dynamic>> list = [];
+    Database db = await instance.database;
+    if (conditn == "yes") {
+      list = await db.rawQuery(
+          "SELECT trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable WHERE adv_import_id ='0'");
+    } else {
+      list = await db.rawQuery(
+          "SELECT trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable");
+    }
     return list;
   }
 

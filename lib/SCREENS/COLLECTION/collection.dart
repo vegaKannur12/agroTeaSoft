@@ -14,10 +14,12 @@ import 'package:tsupply/MODEL/transdetailModel.dart';
 import 'package:tsupply/SCREENS/DIALOGS/bottomtransdetails.dart';
 import 'package:tsupply/SCREENS/DIALOGS/dilogSupplier.dart';
 import 'package:tsupply/SCREENS/DRAWER/customdrawer.dart';
+import 'package:tsupply/SCREENS/VIEW%20LIST/collectionlist.dart';
 import 'package:tsupply/tableList.dart';
 
 class CollectionPage extends StatefulWidget {
-  const CollectionPage({super.key});
+  final String frompage;
+  const CollectionPage({super.key, required this.frompage});
 
   @override
   State<CollectionPage> createState() => _CollectionPageState();
@@ -32,6 +34,8 @@ class _CollectionPageState extends State<CollectionPage>
   late final TabController _tabController;
   TextEditingController bagno_ctrl = TextEditingController();
   TextEditingController wgt_ctrl = TextEditingController();
+  TextEditingController editbagno_ctrl = TextEditingController();
+  TextEditingController editwgt_ctrl = TextEditingController();
   TextEditingController adv_amt_ctrl = TextEditingController();
   TextEditingController adv_narratn_ctrl = TextEditingController();
   Map<String, dynamic>? selectedRoute;
@@ -44,17 +48,22 @@ class _CollectionPageState extends State<CollectionPage>
   int? br_id;
   int? c_id;
   TextEditingController dateInput = TextEditingController();
+  String? frompage;
+  String? editdsupId;
+  String? editdsupName;
+  String? editrutNam;
+  String? editrutID;
   @override
   void initState() {
     super.initState();
     getSharedpref();
+    getedit();
     dateInput.text = "";
     _tabController = TabController(length: 2, vsync: this);
     displaydate = DateFormat('dd-MM-yyyy').format(date);
     transactDate = DateFormat('yyyy-MM-dd').format(date);
     // date.toString();
-    Provider.of<Controller>(context, listen: false).getProductsfromDB();
-    Provider.of<Controller>(context, listen: false).getRoute(" ", context);
+
     print(("-----$displaydate"));
   }
 
@@ -63,6 +72,19 @@ class _CollectionPageState extends State<CollectionPage>
     _tabController.dispose();
 
     super.dispose();
+  }
+
+  getedit() async {
+    if (widget.frompage == "edit") {
+      editbagno_ctrl.text = Provider.of<Controller>(context, listen: false)
+          .editColctMap['trans_bag_nos'];
+      editwgt_ctrl.text = Provider.of<Controller>(context, listen: false)
+          .editColctMap['trans_bag_weights'];
+      editrutID = Provider.of<Controller>(context, listen: false)
+          .editColctMap['trans_route_id'];
+      await Provider.of<Controller>(context, listen: false)
+          .getSupplierfromDB(int.parse(editrutID.toString()));
+    }
   }
 
   getSharedpref() async {
@@ -76,6 +98,9 @@ class _CollectionPageState extends State<CollectionPage>
 
   @override
   Widget build(BuildContext context) {
+    print("from Page------ > ${widget.frompage}");
+    frompage = widget.frompage.toString();
+
     Size size = MediaQuery.of(context).size;
     return WillPopScope(
       onWillPop: () => _onBackPressed(context),
@@ -119,24 +144,58 @@ class _CollectionPageState extends State<CollectionPage>
                     Padding(
                       padding: const EdgeInsets.only(top: 11.0, left: 08),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Row(
+                            children: [
+                              IconButton(
+                                  onPressed: () {
+                                    frompage == "edit"
+                                        ? ()
+                                        : buildRoutePopupDialog(context, size);
+                                  },
+                                  icon: Icon(Icons.location_on_outlined)),
+                              Container(
+                                padding: EdgeInsets.all(7),
+                                // decoration: BoxDecoration(
+                                //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
+                                child: Text(
+                                  frompage == "edit" &&
+                                          value.selectedrut == null
+                                      ? value.editColctMap["trans_route_id"]
+                                          .toString()
+                                          .toUpperCase()
+                                      : value.selectedrut == null
+                                          ? "Choose Route"
+                                          : value.selectedrut!.toUpperCase(),
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 18),
+                                ),
+                              )
+                            ],
+                          ),
                           IconButton(
-                              onPressed: () {
-                                buildRoutePopupDialog(context, size);
-                              },
-                              icon: Icon(Icons.location_on_outlined)),
-                          Container(
-                            padding: EdgeInsets.all(7),
-                            // decoration: BoxDecoration(
-                            //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
-                            child: Text(
-                              value.selectedrut == null
-                                  ? "Choose Route"
-                                  : value.selectedrut!.toUpperCase(),
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 18),
-                            ),
-                          )
+                            onPressed: () async {
+                              await Provider.of<Controller>(context,
+                                      listen: false)
+                                  .gettransMastersfromDB("yes");
+                              await Provider.of<Controller>(context,
+                                      listen: false)
+                                  .gettransDetailsfromDB("yes");
+                              await Provider.of<Controller>(context,
+                                      listen:
+                                          false) // import code to be uncommented
+                                  .importFinal2(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => CollectionList(
+                                          frompage: "home",
+                                        )),
+                              );
+                            },
+                            icon: Icon(Icons.collections),
+                          ),
                         ],
                       ),
                     ),
@@ -147,9 +206,12 @@ class _CollectionPageState extends State<CollectionPage>
                         children: [
                           IconButton(
                               onPressed: () {
-                                if (value.selectedrut != null) {
+                                if (value.selectedrut != null ||
+                                    editrutID.toString().isNotEmpty) {
                                   print(
                                       "route selected---------> ${value.selectedrut}");
+                                  print(
+                                      "route on edit selected---------> ${editrutID.toString()}");
                                   supdio.showSupplierDialog(context);
                                   // buildSupplierPopupDialog(context, size);
                                 } else {
@@ -164,9 +226,14 @@ class _CollectionPageState extends State<CollectionPage>
                             // decoration: BoxDecoration(
                             //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
                             child: Text(
-                              value.selectedsuplier == null
-                                  ? "Choose Supplier"
-                                  : value.selectedsuplier!.toUpperCase(),
+                              frompage == "edit" &&
+                                      value.selectedsuplier == null
+                                  ? value.editColctMap["trans_party_name"]
+                                      .toString()
+                                      .toUpperCase()
+                                  : value.selectedsuplier == null
+                                      ? "Choose Supplier"
+                                      : value.selectedsuplier!.toUpperCase(),
                               style:
                                   TextStyle(color: Colors.black, fontSize: 18),
                             ),
@@ -194,12 +261,14 @@ class _CollectionPageState extends State<CollectionPage>
               Expanded(
                 child: SingleChildScrollView(
                   child: SizedBox(
-                    height: size.height * 0.75,
+                    height: size.height * 0.88,
                     child: TabBarView(
                       // physics:NeverScrollableScrollPhysics(),
                       controller: _tabController,
                       children: <Widget>[
-                        collectionWidget(size),
+                        frompage == "edit"
+                            ? editCollectionWidget(size)
+                            : collectionWidget(size),
                         advanceWidget(size),
                       ],
                     ),
@@ -478,6 +547,7 @@ class _CollectionPageState extends State<CollectionPage>
                                         await SharedPreferences.getInstance();
                                     prefs.setString(
                                         "log_date", date.toString());
+                                    int? rutid = prefs.getInt("sel_rootid");
                                     int? supId = prefs.getInt("sel_accid");
                                     String? supName =
                                         prefs.getString("sel_accnm");
@@ -489,7 +559,10 @@ class _CollectionPageState extends State<CollectionPage>
                                     value.advanceMasterMap["adv_series"] = ts;
                                     value.advanceMasterMap["adv_date"] =
                                         date.toString();
+
                                     // transactDate;
+                                    value.advanceMasterMap["adv_route_id"] =
+                                        rutid.toString();
                                     value.advanceMasterMap["adv_party_id"] =
                                         supId.toString();
                                     value.advanceMasterMap["adv_pay_mode"] =
@@ -554,11 +627,338 @@ class _CollectionPageState extends State<CollectionPage>
                     ])));
   }
 
+  Widget editCollectionWidget(Size size) {
+    return Consumer<Controller>(
+        builder: (BuildContext context, Controller value, Widget? child) {
+      return Padding(
+        padding: EdgeInsets.only(top: 20, left: 10, right: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 10, right: 10),
+              child: Row(
+                children: [
+                  Container(
+                      padding: EdgeInsets.all(10),
+                      // color: Colors.yellow,
+                      width: size.width * 1 / 3.5,
+                      child: Text("No.of Bag")),
+                  Flexible(
+                      child: customTextfield(
+                          editbagno_ctrl, 1, TextInputType.phone))
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 10, top: 12, right: 10),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    // color: Colors.yellow,
+                    width: size.width * 1 / 3.5,
+                    child: Text("Weight"),
+                  ),
+                  Flexible(
+                      child:
+                          customTextfield(editwgt_ctrl, 1, TextInputType.phone))
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Table(
+              border: TableBorder(
+                  horizontalInside:
+                      BorderSide(color: Colors.white, width: 10.0)),
+              // border: TableBorder.all(color: Colors.black),
+              children: [
+                TableRow(
+                    decoration:
+                        BoxDecoration(border: Border.all(color: Colors.black)),
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "PRODUCT",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "COLLECTED",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "DAMAGE",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "TOTAL",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                    ]),
+                ...value.prodList.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  var element = entry.value;
+
+                  // trans_det_dmg_qty: 0, trans_det_net_qty: 25.0,
+                  return TableRow(
+                    decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 234, 238, 233)),
+                    children: [
+                      Center(
+                          child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Text(
+                          // "hfhdfhfh",
+                          element['product'],
+                          // overflow: TextOverflow.ellipsis,
+                        ),
+                      )),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            width: size.width * 0.14,
+                            child: TextFormField(
+                              decoration: InputDecoration(hintText: ""),
+                              onTap: () {
+                                // Perform any action using the index
+                              },
+                              onChanged: (value) async {
+                                await Provider.of<Controller>(context,
+                                        listen: false)
+                                    .updateTotal(index);
+                              },
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              ),
+
+                              keyboardType: TextInputType.number,
+                              // initialValue:
+                              //     element['trans_det_col_qty'].toString(),
+                              // onSubmitted: (values) {
+                              //   // Perform any action using the index
+                              // },
+                              textAlign: TextAlign.center,
+                              controller: value.colected[index],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            width: size.width * 0.14,
+                            child: TextFormField(
+                              decoration: InputDecoration(hintText: ""),
+                              onTap: () {
+                                // Perform any action using the index
+                              },
+                              onChanged: (value) async {
+                                await Provider.of<Controller>(context,
+                                        listen: false)
+                                    .updateTotal(index);
+                              },
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              ),
+
+                              keyboardType: TextInputType.number,
+                              // initialValue:
+                              //     element['trans_det_dmg_qty'].toString(),
+                              // onSubmitted: (values) {
+                              //   // Perform any action using the index
+                              // },
+                              textAlign: TextAlign.center,
+                              controller: value.damage[index],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            width: size.width * 0.14,
+                            child: TextFormField(
+                              readOnly: true,
+                              // initialValue:
+                              //     element['trans_det_net_qty'].toString(),
+                              decoration: InputDecoration(
+                                hintText: "",
+                                border: InputBorder.none,
+                              ),
+                              onTap: () {
+                                // Perform any action using the index
+                              },
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              ),
+                              textAlign: TextAlign.center,
+                              controller: value.total[index],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: 10,
+                right: 10,
+                top: 30,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: size.width * 0.7,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                      ),
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        if (value.selectedsuplier == "" ||
+                            value.selectedsuplier.toString().isEmpty ||
+                            value.selectedsuplier.toString().toLowerCase() ==
+                                "null") {
+                          editdsupId = value.editColctMap["trans_party_id"];
+                          editdsupName =
+                              value.editColctMap["trans_party_name"].toString();
+                          print("noselect");
+                        } else {
+                          editdsupId = prefs.getInt("sel_accid").toString();
+                          editdsupName = prefs.getString("sel_accnm");
+                          print("from shared");
+                        }
+
+                        if (editdsupName.toString() != "" &&
+                            editdsupName.toString().toLowerCase() != "null" &&
+                            editdsupName.toString().isNotEmpty &&
+                            editbagno_ctrl.text != "" &&
+                            editwgt_ctrl.text != "") {
+                          String? ts = prefs.getString("t_series");
+                          print(
+                              "editdsupName-${editdsupName.toString()}, editdsupId--->${editdsupId.toString()}");
+                          await TeaDB.instance.upadteCommonQuery(
+                              "TransMasterTable",
+                              "trans_date ='$transactDate',trans_party_id = '${editdsupId.toString()}' ,trans_party_name = '${editdsupName.toString()}',trans_bag_nos ='${editbagno_ctrl.text.toString()}' , trans_bag_weights= '${editwgt_ctrl.text.toString()}' ",
+                              "trans_id=${value.editColctMap["trans_id"]}");
+
+                          for (int i = 0; i < value.prodList.length; i++) {
+                            Map<String, dynamic> transDetailstempMap = {};
+                            String pid = value.prodList[i]['pid'].toString();
+                            String product = value.prodList[i]
+                                ['product']; // Get the product name
+                            String collected = value
+                                .colected[i].text; // Get the collected value
+                            String damage =
+                                value.damage[i].text; // Get the damage value
+                            String total =
+                                value.total[i].text; // Get the total value
+                            print("pid---$pid");
+                            print("pName---$product");
+                            print(
+                                "Coll----damg----totl---$collected---$damage---$total");
+                            // transDetailstempMap["trans_det_mast_id"] =
+                            //     "$ts$max";
+                            await TeaDB.instance.upadteCommonQuery(
+                                "TransDetailsTable",
+                                "trans_det_col_qty ='$collected',trans_det_dmg_qty ='$damage',trans_det_net_qty ='$total'",
+                                "trans_det_mast_id='$ts${value.editColctMap["trans_id"]}' and trans_det_prod_id='$pid'");
+                          }
+                          Fluttertoast.showToast(
+                              backgroundColor: Colors.green,
+                              msg: "Collection Edited",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.CENTER,
+                              timeInSecForIosWeb: 1,
+                              textColor: Colors.black,
+                              fontSize: 16.0);
+                          editbagno_ctrl.clear();
+                          editwgt_ctrl.clear();
+                          value.setSelectedsupplier({});
+                          await Provider.of<Controller>(context, listen: false)
+                              .getProductsfromDB();
+                          await Provider.of<Controller>(context, listen: false)
+                              .gettransMastersfromDB("yes");
+                          await Provider.of<Controller>(context, listen: false)
+                              .gettransDetailsfromDB("yes");
+                          await Provider.of<Controller>(context,
+                                  listen:
+                                      false) // import code to be uncommented
+                              .importFinal2(context);
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                                opaque: false, // set to false
+                                pageBuilder: (_, __, ___) => CollectionList(
+                                      frompage: "home",
+                                    )),
+                          );
+                        } else {
+                          CustomSnackbar snak = CustomSnackbar();
+                          snak.showSnackbar(context, "Fill all fields", "");
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          "EDIT COLLECTION",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      );
+    });
+  }
+
   Widget collectionWidget(Size size) {
     return Consumer<Controller>(
       builder: (BuildContext context, Controller value, Widget? child) =>
           Padding(
-        padding: EdgeInsets.only(top: 20, left: 15),
+        padding: EdgeInsets.only(top: 20, left: 10, right: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -595,129 +995,162 @@ class _CollectionPageState extends State<CollectionPage>
             SizedBox(
               height: 20,
             ),
-            Padding(
-              padding: EdgeInsets.all(10),
-              child: DataTable(
-                // border: TableBorder.all(color: Colors.black),
-                columnSpacing: 20,
-                columns: <DataColumn>[
-                  DataColumn(
-                    headingRowAlignment: MainAxisAlignment.start,
-                    label: Text(
-                      textAlign: TextAlign.start,
-                      'Product',
-                      style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Collected',
-                      style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Damage',
-                      style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Total',
-                      style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-                rows: value.prodList.asMap().entries.map((entry) {
+            Table(
+              border: TableBorder(
+                  horizontalInside:
+                      BorderSide(color: Colors.white, width: 10.0)),
+              // border: TableBorder.all(color: Colors.black),
+              children: [
+                TableRow(
+                    decoration:
+                        BoxDecoration(border: Border.all(color: Colors.black)),
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "PRODUCT",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "COLLECTED",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "DAMAGE",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "TOTAL",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                    ]),
+                ...value.prodList.asMap().entries.map((entry) {
                   int index = entry.key;
                   var element = entry.value;
-                  return DataRow(
-                    cells: <DataCell>[
-                      DataCell(Text(element['product'])),
-                      DataCell(
-                        Container(
-                          width: size.width * 0.14,
-                          child: TextFormField(
-                            decoration: InputDecoration(hintText: ""),
-                            onTap: () {
-                              // Perform any action using the index
-                            },
-                            onChanged: (value) async {
-                              await Provider.of<Controller>(context,
-                                      listen: false)
-                                  .updateTotal(index);
-                            },
-                            style: TextStyle(
-                              fontSize: 15.0,
-                            ),
+                  return TableRow(
+                    decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 234, 238, 233)),
+                    children: [
+                      Center(
+                          child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Text(
+                          // "hfhdfhfhdffdydsysd",
+                          element['product'],
+                          // overflow: TextOverflow.ellipsis,
+                        ),
+                      )),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            width: size.width * 0.14,
+                            child: TextFormField(
+                              decoration: InputDecoration(hintText: ""),
+                              onTap: () {
+                                // Perform any action using the index
+                              },
+                              onChanged: (value) async {
+                                await Provider.of<Controller>(context,
+                                        listen: false)
+                                    .updateTotal(index);
+                              },
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              ),
 
-                            keyboardType: TextInputType.number,
-                            // onSubmitted: (values) {
-                            //   // Perform any action using the index
-                            // },
-                            textAlign: TextAlign.center,
-                            controller: value.colected[index],
+                              keyboardType: TextInputType.number,
+                              // onSubmitted: (values) {
+                              //   // Perform any action using the index
+                              // },
+                              textAlign: TextAlign.center,
+                              controller: value.colected[index],
+                            ),
                           ),
                         ),
                       ),
-                      DataCell(
-                        Container(
-                          width: size.width * 0.14,
-                          child: TextFormField(
-                            decoration: InputDecoration(hintText: ""),
-                            onTap: () {
-                              // Perform any action using the index
-                            },
-                            onChanged: (value) async {
-                              await Provider.of<Controller>(context,
-                                      listen: false)
-                                  .updateTotal(index);
-                            },
-                            style: TextStyle(
-                              fontSize: 15.0,
-                            ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            width: size.width * 0.14,
+                            child: TextFormField(
+                              decoration: InputDecoration(hintText: ""),
+                              onTap: () {
+                                // Perform any action using the index
+                              },
+                              onChanged: (value) async {
+                                await Provider.of<Controller>(context,
+                                        listen: false)
+                                    .updateTotal(index);
+                              },
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              ),
 
-                            keyboardType: TextInputType.number,
-                            // onSubmitted: (values) {
-                            //   // Perform any action using the index
-                            // },
-                            textAlign: TextAlign.center,
-                            controller: value.damage[index],
+                              keyboardType: TextInputType.number,
+                              // onSubmitted: (values) {
+                              //   // Perform any action using the index
+                              // },
+                              textAlign: TextAlign.center,
+                              controller: value.damage[index],
+                            ),
                           ),
                         ),
                       ),
-                      DataCell(
-                        Container(
-                          width: size.width * 0.14,
-                          child: TextFormField(
-                            readOnly: true,
-                            decoration: InputDecoration(
-                              hintText: "",
-                              border: InputBorder.none,
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            width: size.width * 0.14,
+                            child: TextFormField(
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                hintText: "",
+                                border: InputBorder.none,
+                              ),
+                              onTap: () {
+                                // Perform any action using the index
+                              },
+                              style: TextStyle(
+                                fontSize: 15.0,
+                              ),
+                              textAlign: TextAlign.center,
+                              controller: value.total[index],
                             ),
-                            onTap: () {
-                              // Perform any action using the index
-                            },
-                            style: TextStyle(
-                              fontSize: 15.0,
-                            ),
-                            textAlign: TextAlign.center,
-                            controller: value.total[index],
                           ),
                         ),
                       ),
                     ],
                   );
-                }).toList(),
-              ),
+                }),
+              ],
             ),
             Padding(
               padding: EdgeInsets.only(
@@ -749,6 +1182,9 @@ class _CollectionPageState extends State<CollectionPage>
                               "sel suppl----------------------${value.selectedsuplier.toString()}");
                           // int transid = await randomNo();
                           final prefs = await SharedPreferences.getInstance();
+                          //                       prefs.setInt("sel_rootid", selectedrout["rid"]);
+                          // prefs.setString("sel_rootnm", selectedrout["routename"]);
+                          int? rutid = prefs.getInt("sel_rootid");
                           int? supId = prefs.getInt("sel_accid");
                           String? supName = prefs.getString("sel_accnm");
                           String? ts = prefs.getString("t_series");
@@ -759,6 +1195,8 @@ class _CollectionPageState extends State<CollectionPage>
                           value.transMasterMap["trans_id"] = max;
                           value.transMasterMap["trans_series"] = ts;
                           value.transMasterMap["trans_date"] = transactDate;
+                          value.transMasterMap["trans_route_id"] =
+                              rutid.toString();
                           value.transMasterMap["trans_party_id"] =
                               supId.toString();
                           value.transMasterMap["trans_party_name"] = supName;

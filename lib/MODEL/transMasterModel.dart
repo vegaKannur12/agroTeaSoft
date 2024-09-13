@@ -2,6 +2,7 @@ class TransMasterModel {
   int? tid;
   String? trans_series;
   String? trans_date;
+  String? trans_route_id;
   String? trans_party_id;
   String? trans_party_name;
   String? trans_remark;
@@ -19,6 +20,7 @@ class TransMasterModel {
       {this.tid,
       this.trans_series,
       this.trans_date,
+      this.trans_route_id,
       this.trans_party_id,
       this.trans_party_name,
       this.trans_remark,
@@ -36,6 +38,7 @@ class TransMasterModel {
     tid = json['trans_id'];
     trans_series = json['trans_series'];
     trans_date = json['trans_date'];
+    trans_route_id = json['trans_route_id'];
     trans_party_id = json['trans_party_id'];
     trans_party_name = json['trans_party_name'];
     trans_remark = json['trans_remark'];
@@ -55,6 +58,7 @@ class TransMasterModel {
     data['trans_id'] = tid;
     data['trans_series'] = trans_series;
     data['trans_date'] = trans_date;
+    data['trans_route_id'] = trans_route_id;
     data['trans_party_id'] = trans_party_id;
     data['trans_party_name'] = trans_party_name;
     data['trans_remark'] = trans_remark;

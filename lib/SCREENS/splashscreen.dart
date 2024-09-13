@@ -40,7 +40,11 @@ class _SplashScreenState extends State<SplashScreen>
                 if (cid != null) {
                   print("CID : $cid \nT_SERIES : $t_series");
                   if (st_uname != null && st_pwd != null) {
-                    return CollectionPage();
+                    Provider.of<Controller>(context, listen: false)
+                        .getProductsfromDB();
+                    Provider.of<Controller>(context, listen: false)
+                        .getRoute(" ", context);
+                    return CollectionPage(frompage: "direct");
                   } else {
                     return USERLogin();
                   }

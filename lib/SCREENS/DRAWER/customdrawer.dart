@@ -26,8 +26,8 @@ List itemList = [
   DrawerItems(title: "Dashboard", icon: Icon(Icons.dashboard)),
   DrawerItems(title: "Download/Upload", icon: Icon(Icons.download_outlined)),
   // DrawerItems(title: "Import", icon: Icon(Icons.upload)),
-  DrawerItems(title: "Collection List", icon: Icon(Icons.upload)),
-  DrawerItems(title: "Advance List", icon: Icon(Icons.upload)),
+  DrawerItems(title: "Collection Details", icon: Icon(Icons.upload)),
+  DrawerItems(title: "Advance Details", icon: Icon(Icons.upload)),
   DrawerItems(title: "Logout", icon: Icon(Icons.exit_to_app_rounded)),
 ];
 
@@ -51,10 +51,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               onTap: () async {
                 if (index == 0) {
+                  
+  Provider.of<Controller>(context, listen: false).getProductsfromDB();
+    Provider.of<Controller>(context, listen: false).getRoute(" ", context);
                   Navigator.of(context).push(
                     PageRouteBuilder(
                         opaque: false, // set to false
-                        pageBuilder: (_, __, ___) => CollectionPage()),
+                        pageBuilder: (_, __, ___) => CollectionPage(frompage: "direct")),
                   );
                 } else if (index == 1) {
                   await Provider.of<Controller>(context, listen: false)
@@ -81,7 +84,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   Navigator.of(context).push(
                     PageRouteBuilder(
                         opaque: false, // set to false
-                        pageBuilder: (_, __, ___) => CollectionList()),
+                        pageBuilder: (_, __, ___) => CollectionList(frompage: "drawer",)),
                   );
                 } else if (index == 3) {
                   await Provider.of<Controller>(context, listen: false)

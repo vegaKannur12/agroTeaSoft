@@ -72,6 +72,7 @@ class Controller extends ChangeNotifier {
   Map<String, dynamic> finalSaveMap = {};
   Map<String, dynamic> finalAdvanceMap = {};
   Map<String, dynamic> finalBagMap = {};
+  Map<String, dynamic> editColctMap = {};
   bool finalbagListloading = false;
   bool finaladvncebagloading = false;
   List<bool> downlooaded = [];
@@ -206,6 +207,7 @@ class Controller extends ChangeNotifier {
       matermap["trans_id"] = importtransMasterList[i]["trans_id"];
       matermap["trans_series"] = importtransMasterList[i]["trans_series"];
       matermap["trans_date"] = importtransMasterList[i]["trans_date"];
+      matermap["trans_route_id"] = importtransMasterList[i]["trans_route_id"];
       matermap["trans_party_id"] = importtransMasterList[i]["trans_party_id"];
       matermap["trans_party_name"] =
           importtransMasterList[i]["trans_party_name"];
@@ -326,6 +328,7 @@ class Controller extends ChangeNotifier {
       matermap["trans_id"] = importtransMasterList[i]["trans_id"];
       matermap["trans_series"] = importtransMasterList[i]["trans_series"];
       matermap["trans_date"] = importtransMasterList[i]["trans_date"];
+      matermap["trans_route_id"] = importtransMasterList[i]["trans_route_id"];
       matermap["trans_party_id"] = importtransMasterList[i]["trans_party_id"];
       matermap["trans_party_name"] =
           importtransMasterList[i]["trans_party_name"];
@@ -393,6 +396,7 @@ class Controller extends ChangeNotifier {
       Map<String, dynamic> matermap = {};
       notifyListeners();
       matermap["adv_series"] = importAdvanceList[i]["adv_series"];
+      matermap["adv_route_id"] = importAdvanceList[i]["adv_route_id"];
       matermap["adv_party_id"] = importAdvanceList[i]["adv_party_id"];
       matermap["trans_id"] = importAdvanceList[i]["trans_id"];
       matermap["adv_pay_mode"] = importAdvanceList[i]["adv_pay_mode"];
@@ -491,7 +495,7 @@ class Controller extends ChangeNotifier {
     notifyListeners();
   }
 
-   deleteAdvance(int t_id, BuildContext context) async {
+  deleteAdvance(int t_id, BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ts = prefs.getString("t_series");
     print('tran_id: $t_id');
@@ -562,6 +566,7 @@ class Controller extends ChangeNotifier {
       Map<String, dynamic> matermap = {};
       notifyListeners();
       matermap["adv_series"] = importAdvanceList[i]["adv_series"];
+      matermap["adv_route_id"] = importAdvanceList[i]["adv_route_id"];
       matermap["adv_party_id"] = importAdvanceList[i]["adv_party_id"];
       matermap["trans_id"] = importAdvanceList[i]["trans_id"];
       matermap["adv_pay_mode"] = importAdvanceList[i]["adv_pay_mode"];
@@ -777,13 +782,13 @@ class Controller extends ChangeNotifier {
       List proList = await TeaDB.instance.getProductListfromDB();
       print("prodList----${proList}");
       prodList.clear();
-      prodList = [
-        {"id": 1, "pid": 1, "product": "A"},
-        // {"id": 2, "pid": 2, "product": "B"},
-      ];
-      // for (var item in proList) {
-      //   prodList.add(item);
-      // }
+      // prodList = [
+      //   {"id": 1, "pid": 1, "product": "A"},
+      //   // {"id": 2, "pid": 2, "product": "B"},
+      // ];
+      for (var item in proList) {
+        prodList.add(item);
+      }
       var lengthh = prodList.length;
       colected = List.generate(lengthh, (index) => TextEditingController());
       damage = List.generate(lengthh, (index) => TextEditingController());
@@ -799,6 +804,20 @@ class Controller extends ChangeNotifier {
     } catch (e) {
       print(e);
       return null;
+    }
+    notifyListeners();
+  }
+
+  setEditcollectList(Map<String, dynamic> colMap) {
+    editColctMap.clear();
+    notifyListeners();
+    editColctMap = colMap;
+    List<dynamic> details = editColctMap['details'];
+    for (int i = 0; i < details.length; i++) {
+      colected[i].text = details[i]['trans_det_col_qty'].toString();
+      damage[i].text = details[i]['trans_det_dmg_qty'].toString();
+      total[i].text = details[i]['trans_det_net_qty'].toString();
+      print("edit collect list............$colected");
     }
     notifyListeners();
   }
@@ -945,7 +964,8 @@ class Controller extends ChangeNotifier {
 
   registeration(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString("t_series", "AB");
+    // prefs.setString("t_series", "AB");
+    prefs.setString("t_series", "CD");
   }
 
   Future<UserModel?> getUserDetails(int index, String page) async {
@@ -956,7 +976,6 @@ class Controller extends ChangeNotifier {
       // // SharedPreferences prefs = await SharedPreferences.getInstance();
       // // String? br_id1 = prefs.getString("br_id");
       Map body = {'cid': ""};
-
       http.Response response = await http.post(
         url,
         body: body,

@@ -85,6 +85,7 @@ class TeaDB {
             trans_id INTEGER NOT NULL,
             trans_series TEXT,
             trans_date TEXT,
+            trans_route_id TEXT,
             trans_party_id TEXT,
             trans_party_name TEXT,
             trans_remark TEXT,
@@ -125,6 +126,7 @@ class TeaDB {
             trans_id INTEGER NOT NULL,
             adv_series TEXT,
             adv_date TEXT,
+            adv_route_id TEXT,
             adv_party_id TEXT,   
             adv_pay_mode TEXT,
             adv_pay_acc TEXT,
@@ -184,7 +186,7 @@ class TeaDB {
   Future inserttransMasterDetails(TransMasterModel tdata) async {
     final db = await database;
     var query3 =
-        'INSERT INTO TransMasterTable(trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos ,trans_bag_weights ,trans_import_id ,company_id,branch_id ,user_session,log_user_id,log_date,status) VALUES(${tdata.tid}, "${tdata.trans_series}", "${tdata.trans_date}", "${tdata.trans_party_id}", "${tdata.trans_party_name}", "${tdata.trans_remark}", "${tdata.trans_bag_nos}", "${tdata.trans_bag_weights}", "${tdata.trans_import_id}", "${tdata.company_id}", "${tdata.branch_id}", "${tdata.user_session}", "${tdata.log_user_id}", "${tdata.log_date}", ${tdata.status})';
+        'INSERT INTO TransMasterTable(trans_id, trans_series ,trans_date ,trans_route_id,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos ,trans_bag_weights ,trans_import_id ,company_id,branch_id ,user_session,log_user_id,log_date,status) VALUES(${tdata.tid}, "${tdata.trans_series}", "${tdata.trans_date}","${tdata.trans_route_id}", "${tdata.trans_party_id}", "${tdata.trans_party_name}", "${tdata.trans_remark}", "${tdata.trans_bag_nos}", "${tdata.trans_bag_weights}", "${tdata.trans_import_id}", "${tdata.company_id}", "${tdata.branch_id}", "${tdata.user_session}", "${tdata.log_user_id}", "${tdata.log_date}", ${tdata.status})';
     var res = await db.rawInsert(query3);
     print(query3);
     print(res);
@@ -212,7 +214,7 @@ class TeaDB {
   Future insertAdvancetoDB(AdvanceModel adata) async {
     final db = await database;
     var query3 =
-        'INSERT INTO AdvanceTable(trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,log_date,status) VALUES(${adata.adv_trans_id}, "${adata.adv_series}", "${adata.adv_date}", "${adata.adv_party_id}", "${adata.adv_pay_mode}", "${adata.adv_pay_acc}", "${adata.adv_amt}", "${adata.adv_narration}", "${adata.adv_acc_date}","${adata.adv_import_id}","${adata.company_id}","${adata.branch_id}","${adata.log_date}",${adata.status})';
+        'INSERT INTO AdvanceTable(trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,log_date,status) VALUES(${adata.adv_trans_id}, "${adata.adv_series}", "${adata.adv_date}","${adata.adv_route_id}", "${adata.adv_party_id}", "${adata.adv_pay_mode}", "${adata.adv_pay_acc}", "${adata.adv_amt}", "${adata.adv_narration}", "${adata.adv_acc_date}","${adata.adv_import_id}","${adata.company_id}","${adata.branch_id}","${adata.log_date}",${adata.status})';
     var res = await db.rawInsert(query3);
     print(query3);
     print(res);
@@ -230,7 +232,7 @@ class TeaDB {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
     list = await db.rawQuery(
-        'SELECT trans_id,trans_series,trans_date,trans_party_id,trans_party_name,trans_remark, trans_bag_nos,trans_bag_weights,trans_import_id, company_id,branch_id,user_session, log_user_id,log_date,status FROM TransMasterTable where trans_id=$tid');
+        'SELECT trans_id,trans_series,trans_date,trans_route_id,trans_party_id,trans_party_name,trans_remark, trans_bag_nos,trans_bag_weights,trans_import_id, company_id,branch_id,user_session, log_user_id,log_date,status FROM TransMasterTable where trans_id=$tid');
     print("List===$list");
     return list;
   }
@@ -269,10 +271,16 @@ class TeaDB {
     Database db = await instance.database;
     if (conditn == "yes") {
       list = await db.rawQuery(
-          "SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable WHERE trans_import_id='0'");
-    } else {
+          "SELECT trans_id, trans_series ,trans_date ,trans_route_id,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable WHERE trans_import_id='0'");
+    }
+    // else if(conditn=="tid")
+    // {
+    //   list = await db.rawQuery(
+    //       "SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable WHERE trans_id=$tid");
+    // }
+    else {
       list = await db.rawQuery(
-          "SELECT trans_id, trans_series ,trans_date ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable");
+          "SELECT trans_id, trans_series ,trans_date,trans_route_id ,trans_party_id ,trans_party_name,trans_remark ,trans_bag_nos,trans_bag_weights,trans_import_id,company_id,branch_id,user_session,log_user_id,log_date,status FROM TransMasterTable");
     }
     return list;
   }
@@ -297,10 +305,10 @@ class TeaDB {
     Database db = await instance.database;
     if (conditn == "yes") {
       list = await db.rawQuery(
-          "SELECT trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable WHERE adv_import_id ='0'");
+          "SELECT trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable WHERE adv_import_id ='0'");
     } else {
       list = await db.rawQuery(
-          "SELECT trans_id,adv_series,adv_date,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable");
+          "SELECT trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable");
     }
     return list;
   }

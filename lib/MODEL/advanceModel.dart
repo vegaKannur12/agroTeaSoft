@@ -2,6 +2,7 @@ class AdvanceModel {
   int? adv_trans_id ;
   String? adv_series;
   String? adv_date;
+  String? adv_route_id;
   String? adv_party_id;
   String? adv_pay_mode;
   String? adv_pay_acc;
@@ -18,6 +19,7 @@ class AdvanceModel {
       {this.adv_trans_id ,
       this.adv_series ,
       this.adv_date,
+      this.adv_route_id,
       this.adv_party_id,
       this.adv_pay_mode,
       this.adv_pay_acc,
@@ -34,6 +36,7 @@ class AdvanceModel {
     adv_trans_id  = json['trans_id'];
     adv_series  = json['adv_series'];
     adv_date = json['adv_date'];
+    adv_route_id = json['adv_route_id'];
     adv_party_id = json['adv_party_id'];
     adv_pay_mode = json['adv_pay_mode'];
     adv_pay_acc = json['adv_pay_acc'];
@@ -52,6 +55,7 @@ class AdvanceModel {
     data['trans_id'] = adv_trans_id ;
     data['adv_series'] = adv_series ;
     data['adv_date'] = adv_date;
+    data['adv_route_id'] = adv_route_id;
     data['adv_party_id'] = adv_party_id;
     data['adv_pay_mode'] = adv_pay_mode;
     data['adv_pay_acc'] = adv_pay_acc;

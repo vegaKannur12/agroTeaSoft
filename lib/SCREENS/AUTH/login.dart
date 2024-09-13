@@ -16,8 +16,8 @@ class USERLogin extends StatefulWidget {
 class _USERLoginState extends State<USERLogin> {
   TextEditingController password = TextEditingController();
   bool loginLoad = false;
-   DateTime date = DateTime.now();
-   String? logdate;
+  DateTime date = DateTime.now();
+  String? logdate;
   @override
   void initState() {
     // TODO: implement initState
@@ -265,11 +265,17 @@ class _USERLoginState extends State<USERLogin> {
                                     .verifyStaff(password.text, context);
                                 print("$i");
                                 if (i == 1) {
+                                  Provider.of<Controller>(context,
+                                          listen: false)
+                                      .getProductsfromDB();
+                                  Provider.of<Controller>(context,
+                                          listen: false)
+                                      .getRoute(" ", context);
                                   Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) =>
-                                              CollectionPage()));
+                                          builder: (context) => CollectionPage(
+                                              frompage: "direct")));
                                 } else {
                                   CustomSnackbar snackbar = CustomSnackbar();
                                   snackbar.showSnackbar(

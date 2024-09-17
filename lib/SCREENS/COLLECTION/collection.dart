@@ -14,6 +14,7 @@ import 'package:tsupply/MODEL/transdetailModel.dart';
 import 'package:tsupply/SCREENS/DIALOGS/bottomtransdetails.dart';
 import 'package:tsupply/SCREENS/DIALOGS/dilogSupplier.dart';
 import 'package:tsupply/SCREENS/DRAWER/customdrawer.dart';
+import 'package:tsupply/SCREENS/VIEW%20LIST/advanceList.dart';
 import 'package:tsupply/SCREENS/VIEW%20LIST/collectionlist.dart';
 import 'package:tsupply/tableList.dart';
 
@@ -31,13 +32,15 @@ class _CollectionPageState extends State<CollectionPage>
   String? displaydate;
   String? transactDate;
   String? savedate;
-  late final TabController _tabController;
+  late TabController _tabController;
   TextEditingController bagno_ctrl = TextEditingController();
   TextEditingController wgt_ctrl = TextEditingController();
   TextEditingController editbagno_ctrl = TextEditingController();
   TextEditingController editwgt_ctrl = TextEditingController();
   TextEditingController adv_amt_ctrl = TextEditingController();
   TextEditingController adv_narratn_ctrl = TextEditingController();
+  TextEditingController editadv_amt_ctrl = TextEditingController();
+  TextEditingController editadv_narratn_ctrl = TextEditingController();
   Map<String, dynamic>? selectedRoute;
   Map<String, dynamic>? selectedSpplierrr;
   TransDetailsBottomSheet tdetbottom = TransDetailsBottomSheet();
@@ -47,19 +50,26 @@ class _CollectionPageState extends State<CollectionPage>
   String? upwd;
   int? br_id;
   int? c_id;
+  String? ts;
   TextEditingController dateInput = TextEditingController();
+  TextEditingController editdateInput = TextEditingController();
   String? frompage;
   String? editdsupId;
   String? editdsupName;
   String? editrutNam;
   String? editrutID;
+  // List? rtList ;
+
   @override
   void initState() {
     super.initState();
     getSharedpref();
     getedit();
     dateInput.text = "";
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+        length: 2,
+        vsync: this,
+        initialIndex: widget.frompage == "advedit" ? 1 : 0);
     displaydate = DateFormat('dd-MM-yyyy').format(date);
     transactDate = DateFormat('yyyy-MM-dd').format(date);
     // date.toString();
@@ -84,6 +94,28 @@ class _CollectionPageState extends State<CollectionPage>
           .editColctMap['trans_route_id'];
       await Provider.of<Controller>(context, listen: false)
           .getSupplierfromDB(int.parse(editrutID.toString()));
+      await Provider.of<Controller>(context, listen: false)
+          .getRouteNamefromDB(int.parse(editrutID.toString()));
+
+      //  rtList = await TeaDB.instance
+      //     .getRouteNamefromDB(int.parse(editrutID.toString()));
+      // print("root adv==$rtList");
+    }
+    if (widget.frompage == "advedit") {
+      editadv_amt_ctrl.text = Provider.of<Controller>(context, listen: false)
+          .editAdvnceMap['adv_amt'];
+      editadv_narratn_ctrl.text =
+          Provider.of<Controller>(context, listen: false)
+              .editAdvnceMap['adv_narration'];
+      editdateInput.text = Provider.of<Controller>(context, listen: false)
+          .editAdvnceMap['adv_accountable_date'];
+      editrutID = Provider.of<Controller>(context, listen: false)
+          .editAdvnceMap['adv_route_id'];
+      await Provider.of<Controller>(context, listen: false)
+          .getRouteNamefromDB(int.parse(editrutID.toString()));
+      //  rtList = await TeaDB.instance
+      //     .getRouteNamefromDB(int.parse(editrutID.toString()));
+      // print("root adv==$rtList");
     }
   }
 
@@ -94,6 +126,7 @@ class _CollectionPageState extends State<CollectionPage>
     br_id = prefs.getInt("br_id");
     uname = prefs.getString("uname");
     upwd = prefs.getString("upwd");
+    ts = prefs.getString("t_series");
   }
 
   @override
@@ -107,19 +140,25 @@ class _CollectionPageState extends State<CollectionPage>
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.lightGreen,
+          title: Text(
+            ts.toString(),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 182, 84, 84)),
+          ),
           actions: [
-            IconButton(
-              onPressed: () async {
-                List<Map<String, dynamic>> list =
-                    await TeaDB.instance.getListOfTables();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => TableList(list: list)),
-                );
-              },
-              icon: Icon(Icons.table_bar),
-            ),
+            // IconButton(
+            //   onPressed: () async {
+            //     List<Map<String, dynamic>> list =
+            //         await TeaDB.instance.getListOfTables();
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //           builder: (context) => TableList(list: list)),
+            //     );
+            //   },
+            //   icon: Icon(Icons.table_bar),
+            // ),
             Padding(
               padding: const EdgeInsets.all(10),
               child: Text(
@@ -131,6 +170,7 @@ class _CollectionPageState extends State<CollectionPage>
             )
           ],
         ),
+        // bottomNavigationBar: Container(color: Colors.amber,height: 40,),
         drawer: CustomDrawer(),
         body: Consumer<Controller>(
           builder: (BuildContext context, Controller value, Widget? child) =>
@@ -150,24 +190,36 @@ class _CollectionPageState extends State<CollectionPage>
                             children: [
                               IconButton(
                                   onPressed: () {
-                                    frompage == "edit"
+                                    frompage == "edit" || frompage == "advedit"
                                         ? ()
                                         : buildRoutePopupDialog(context, size);
                                   },
-                                  icon: Icon(Icons.location_on_outlined)),
+                                  icon: Icon(Icons.location_on_outlined,color: Color.fromARGB(255, 232, 247, 231),)),
                               Container(
-                                padding: EdgeInsets.all(7),
+                                // padding: EdgeInsets.all(7),
                                 // decoration: BoxDecoration(
                                 //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
                                 child: Text(
                                   frompage == "edit" &&
                                           value.selectedrut == null
-                                      ? value.editColctMap["trans_route_id"]
+                                      ? value.rootnmforEdit
                                           .toString()
                                           .toUpperCase()
-                                      : value.selectedrut == null
-                                          ? "Choose Route"
-                                          : value.selectedrut!.toUpperCase(),
+                                      //  value.editColctMap["trans_route_id"]
+                                      //     .toString()
+                                      //     .toUpperCase()
+                                      : frompage == "advedit" &&
+                                              value.selectedrut == null
+                                          ? value.rootnmforEdit
+                                              .toString()
+                                              .toUpperCase()
+                                          //  value.editAdvnceMap["adv_route_id"]
+                                          //     .toString()
+                                          //     .toUpperCase()
+                                          : value.selectedrut == null
+                                              ? "Choose Route"
+                                              : value.selectedrut!
+                                                  .toUpperCase(),
                                   style: TextStyle(
                                       color: Colors.black, fontSize: 18),
                                 ),
@@ -203,41 +255,85 @@ class _CollectionPageState extends State<CollectionPage>
                       padding: const EdgeInsets.only(
                           top: 11.0, left: 08, bottom: 11.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Row(
+                            children: [
+                              IconButton(
+                                  onPressed: () {
+                                    if (value.selectedrut != null ||
+                                        editrutID.toString().isNotEmpty) {
+                                      if (value.spplierList.isNotEmpty) {
+                                        print(
+                                            "route selected---------> ${value.selectedrut}");
+                                        print(
+                                            "route on edit selected---------> ${editrutID.toString()}");
+                                        supdio.showSupplierDialog(context);
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            backgroundColor: Colors.amber[100],
+                                            msg: "No Supplier in this root",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.CENTER,
+                                            timeInSecForIosWeb: 1,
+                                            textColor: Colors.black,
+                                            fontSize: 16.0);
+                                      }
+
+                                      // buildSupplierPopupDialog(context, size);
+                                    } else {
+                                      CustomSnackbar snak = CustomSnackbar();
+                                      snak.showSnackbar(
+                                          context, "Select Route", "");
+                                    }
+                                  },
+                                  icon: Icon(Icons.person,color: Color.fromARGB(255, 232, 247, 231),)),
+                              Container(
+                                // padding: EdgeInsets.all(7),
+                                // decoration: BoxDecoration(
+                                //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
+                                child: Text(
+                                  frompage == "edit" &&
+                                          value.selectedsuplier == null
+                                      ? value.editColctMap["trans_party_name"]
+                                          .toString()
+                                          .toUpperCase()
+                                      : frompage == "advedit" &&
+                                              value.selectedsuplier == null
+                                          ? value
+                                              .editAdvnceMap["adv_party_name"]
+                                              .toString()
+                                              .toUpperCase()
+                                          : value.selectedsuplier == null
+                                              ? "Choose Supplier"
+                                              : value.selectedsuplier!
+                                                  .toUpperCase(),
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 18),
+                                ),
+                              )
+                            ],
+                          ),
                           IconButton(
-                              onPressed: () {
-                                if (value.selectedrut != null ||
-                                    editrutID.toString().isNotEmpty) {
-                                  print(
-                                      "route selected---------> ${value.selectedrut}");
-                                  print(
-                                      "route on edit selected---------> ${editrutID.toString()}");
-                                  supdio.showSupplierDialog(context);
-                                  // buildSupplierPopupDialog(context, size);
-                                } else {
-                                  CustomSnackbar snak = CustomSnackbar();
-                                  snak.showSnackbar(
-                                      context, "Select Route", "");
-                                }
+                              onPressed: () async {
+                                await Provider.of<Controller>(context,
+                                        listen: false)
+                                    .getAdvanceDetailsfromDB("yes");
+                                await Provider.of<Controller>(context,
+                                        listen:
+                                            false) // import code to be uncommented
+                                    .importAdvanceBag(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AdvanceList(
+                                            frompage: "home",
+                                          )),
+                                );
                               },
-                              icon: Icon(Icons.person)),
-                          Container(
-                            padding: EdgeInsets.all(7),
-                            // decoration: BoxDecoration(
-                            //     border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(20)),
-                            child: Text(
-                              frompage == "edit" &&
-                                      value.selectedsuplier == null
-                                  ? value.editColctMap["trans_party_name"]
-                                      .toString()
-                                      .toUpperCase()
-                                  : value.selectedsuplier == null
-                                      ? "Choose Supplier"
-                                      : value.selectedsuplier!.toUpperCase(),
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 18),
-                            ),
-                          )
+                              icon: Icon(
+                                Icons.money,
+                              )),
                         ],
                       ),
                     ),
@@ -269,7 +365,9 @@ class _CollectionPageState extends State<CollectionPage>
                         frompage == "edit"
                             ? editCollectionWidget(size)
                             : collectionWidget(size),
-                        advanceWidget(size),
+                        frompage == "advedit"
+                            ? editadvanceWidget(size)
+                            : advanceWidget(size),
                       ],
                     ),
                   ),
@@ -334,11 +432,12 @@ class _CollectionPageState extends State<CollectionPage>
                               Navigator.pop(context);
                             } else {
                               Fluttertoast.showToast(
-                                  msg: "This is a Toast message",
+                                  msg: "Select root",
+                                  backgroundColor: Colors.amber[100],
                                   toastLength: Toast.LENGTH_SHORT,
                                   gravity: ToastGravity.CENTER,
                                   timeInSecForIosWeb: 1,
-                                  textColor: Colors.white,
+                                  textColor: Colors.black,
                                   fontSize: 16.0);
                             }
                           },
@@ -412,6 +511,189 @@ class _CollectionPageState extends State<CollectionPage>
             );
           });
         });
+  }
+
+  Widget editadvanceWidget(Size size) {
+    return Consumer<Controller>(
+        builder: (BuildContext context, Controller value, Widget? child) =>
+            Padding(
+                padding: EdgeInsets.only(top: 20, left: 15),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: 10, right: 10),
+                        child: Row(
+                          children: [
+                            // Container(
+                            //     padding: EdgeInsets.all(10),
+                            //     // color: Colors.yellow,
+                            //     width: size.width * 1 / 3.5,
+                            //     child: Text("Amount")),
+                            Flexible(
+                                child: TextField(
+                              controller: editdateInput,
+                              //editing controller of this TextField
+                              decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  icon: Icon(Icons
+                                      .calendar_today), //icon of text field
+                                  labelText:
+                                      "Accountable Date" //label text of field
+                                  ),
+                              readOnly: true,
+                              //set it true, so that user will not able to edit text
+                              onTap: () async {
+                                DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(1950),
+                                    //DateTime.now() - not to allow to choose before today.
+                                    lastDate: DateTime(2100));
+
+                                if (pickedDate != null) {
+                                  print(
+                                      pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+                                  String formattedDate =
+                                      DateFormat('yyyy-MM-dd')
+                                          // DateFormat('dd-MM-yyyy')
+                                          .format(pickedDate);
+                                  savedate = DateFormat('yyyy-MM-dd')
+                                      .format(pickedDate);
+                                  print(
+                                      formattedDate); //formatted date output using intl package =>  2021-03-16
+                                  setState(() {
+                                    editdateInput.text =
+                                        formattedDate; //set output date to TextField value.
+                                  });
+                                } else {}
+                              },
+                            ))
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          right: 10,
+                          top: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                                padding: EdgeInsets.all(10),
+                                // color: Colors.yellow,
+                                width: size.width * 1 / 3.5,
+                                child: Text("Amount")),
+                            Flexible(
+                                child: customTextfield(
+                                    editadv_amt_ctrl, 1, TextInputType.phone))
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          right: 10,
+                          top: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                                padding: EdgeInsets.all(10),
+                                // color: Colors.yellow,
+                                width: size.width * 1 / 3.5,
+                                child: Text("Narration")),
+                            Flexible(
+                                child: customTextfield(editadv_narratn_ctrl, 2,
+                                    TextInputType.text))
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          right: 10,
+                          top: 30,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: size.width * 0.7,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                ),
+                                onPressed: () async {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  if (value.selectedsuplier == "" ||
+                                      value.selectedsuplier
+                                          .toString()
+                                          .isEmpty ||
+                                      value.selectedsuplier
+                                              .toString()
+                                              .toLowerCase() ==
+                                          "null") {
+                                    editdsupId =
+                                        value.editAdvnceMap["adv_party_id"];
+                                    editdsupName = value
+                                        .editAdvnceMap["adv_party_name"]
+                                        .toString();
+                                    print("noselect");
+                                  } else {
+                                    editdsupId =
+                                        prefs.getInt("sel_accid").toString();
+                                    editdsupName = prefs.getString("sel_accnm");
+                                    print("from shared");
+                                  }
+                                  if (editdsupName.toString() != "" &&
+                                      editdsupName.toString().toLowerCase() !=
+                                          "null" &&
+                                      editdsupName.toString().isNotEmpty &&
+                                      editadv_amt_ctrl.text != "" &&
+                                      editadv_narratn_ctrl.text != "") {
+                                    String? ts = prefs.getString("t_series");
+                                    await TeaDB.instance.upadteCommonQuery(
+                                        "AdvanceTable",
+                                        "adv_acc_date ='${editdateInput.text.toString()}',adv_party_id = '${editdsupId.toString()}' ,adv_party_name = '${editdsupName.toString()}',adv_amt ='${editadv_amt_ctrl.text.toString()}' , adv_narration= '${editadv_narratn_ctrl.text.toString()}' ",
+                                        "trans_id=${value.editAdvnceMap["trans_id"]}");
+
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.green,
+                                        msg: "Advance Edited",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.CENTER,
+                                        timeInSecForIosWeb: 1,
+                                        textColor: Colors.black,
+                                        fontSize: 16.0);
+                                    editadv_amt_ctrl.clear();
+                                    editadv_narratn_ctrl.clear();
+                                    editdateInput.clear();
+                                    savedate = "";
+                                  } else {
+                                    CustomSnackbar snak = CustomSnackbar();
+                                    snak.showSnackbar(
+                                        context, "Fill all fields", "");
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    "EDIT ADVANCE",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ])));
   }
 
   Widget advanceWidget(Size size) {
@@ -565,6 +847,8 @@ class _CollectionPageState extends State<CollectionPage>
                                         rutid.toString();
                                     value.advanceMasterMap["adv_party_id"] =
                                         supId.toString();
+                                    value.advanceMasterMap["adv_party_name"] =
+                                        supName.toString();
                                     value.advanceMasterMap["adv_pay_mode"] =
                                         "1";
                                     value.advanceMasterMap["adv_pay_acc"] = "";

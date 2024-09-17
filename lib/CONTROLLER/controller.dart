@@ -73,6 +73,7 @@ class Controller extends ChangeNotifier {
   Map<String, dynamic> finalAdvanceMap = {};
   Map<String, dynamic> finalBagMap = {};
   Map<String, dynamic> editColctMap = {};
+  Map<String, dynamic> editAdvnceMap = {};
   bool finalbagListloading = false;
   bool finaladvncebagloading = false;
   List<bool> downlooaded = [];
@@ -81,6 +82,7 @@ class Controller extends ChangeNotifier {
   bool colluploading = false;
   bool advuploaded = false;
   bool advuploading = false;
+  String? rootnmforEdit;
   List<String> downloadItems = [
     "Route",
     "Supplier Details",
@@ -105,7 +107,8 @@ class Controller extends ChangeNotifier {
     try {
       downloading[index] = true;
       notifyListeners();
-      Uri url = Uri.parse("http://192.168.18.168:7000/api/load_routes");
+      // Uri url = Uri.parse("http://192.168.18.168:7000/api/load_routes");
+      Uri url = Uri.parse("http://teasoft.trafiqerp.in/api/load_routes");   ///http://teasoft.trafiqerp.in
       // // SharedPreferences prefs = await SharedPreferences.getInstance();
       // // String? br_id1 = prefs.getString("br_id");
 
@@ -262,7 +265,7 @@ class Controller extends ChangeNotifier {
       Map<String, dynamic> mappfinal, BuildContext context) async {
     print(jsonEncode("Save Map----- > $mappfinal"));
     var mapBody = jsonEncode(mappfinal);
-    Uri url = Uri.parse("http://192.168.18.168:7000/api/Trans_Save");
+    Uri url = Uri.parse("http://teasoft.trafiqerp.in/api/Trans_Save");
     Map body = {'json_arr': mapBody};
     http.Response response = await http.post(
       url,
@@ -398,10 +401,12 @@ class Controller extends ChangeNotifier {
       matermap["adv_series"] = importAdvanceList[i]["adv_series"];
       matermap["adv_route_id"] = importAdvanceList[i]["adv_route_id"];
       matermap["adv_party_id"] = importAdvanceList[i]["adv_party_id"];
+      matermap["adv_party_name"] = importAdvanceList[i]["adv_party_name"];
       matermap["trans_id"] = importAdvanceList[i]["trans_id"];
       matermap["adv_pay_mode"] = importAdvanceList[i]["adv_pay_mode"];
       matermap["adv_pay_acc"] = importAdvanceList[i]["adv_pay_acc"];
       matermap["adv_amt"] = importAdvanceList[i]["adv_amt"];
+      matermap["adv_narration"] = importAdvanceList[i]["adv_narration"];
       matermap["adv_accountable_date"] = importAdvanceList[i]["adv_acc_date"];
       matermap["adv_voucher_no"] = "";
       matermap["company_id"] = importAdvanceList[i]["company_id"];
@@ -599,7 +604,7 @@ class Controller extends ChangeNotifier {
     print(jsonEncode("Advnc Save Map----- > $mappfinal"));
 
     var mapBody = jsonEncode(mappfinal);
-    Uri url = Uri.parse("http://192.168.18.168:7000/api/advance_save");
+    Uri url = Uri.parse("http://teasoft.trafiqerp.in/api/advance_save");
     Map body = {'json_arr': mapBody};
     http.Response response = await http.post(
       url,
@@ -704,7 +709,7 @@ class Controller extends ChangeNotifier {
   Future<AccountMasterModel?> getACMasterDetails(int index, String page) async {
     // print("cid...............${cid}");
     try {
-      Uri url = Uri.parse("http://192.168.18.168:7000/api/load_suppliers");
+      Uri url = Uri.parse("http://teasoft.trafiqerp.in/api/load_suppliers");
       // // SharedPreferences prefs = await SharedPreferences.getInstance();
       // // String? br_id1 = prefs.getString("br_id");
       Map body = {'cid': " "};
@@ -758,6 +763,13 @@ class Controller extends ChangeNotifier {
     }
   }
 
+  getRouteNamefromDB(int? rid) async {
+    List accList =
+        await TeaDB.instance.getRouteNamefromDB(int.parse(rid.toString()));
+    rootnmforEdit = accList[0]["routename"].toString();
+    notifyListeners();
+  }
+
   getSupplierfromDB(int? rid) async {
     print("root ID...............${rid}");
     try {
@@ -789,6 +801,7 @@ class Controller extends ChangeNotifier {
       for (var item in proList) {
         prodList.add(item);
       }
+
       var lengthh = prodList.length;
       colected = List.generate(lengthh, (index) => TextEditingController());
       damage = List.generate(lengthh, (index) => TextEditingController());
@@ -819,6 +832,14 @@ class Controller extends ChangeNotifier {
       total[i].text = details[i]['trans_det_net_qty'].toString();
       print("edit collect list............$colected");
     }
+    notifyListeners();
+  }
+
+  setEditAdvList(Map<String, dynamic> colMap) {
+    editAdvnceMap.clear();
+    notifyListeners();
+    editAdvnceMap = colMap;
+    print("Edit adv Map--$editAdvnceMap");
     notifyListeners();
   }
 
@@ -916,7 +937,7 @@ class Controller extends ChangeNotifier {
     try {
       downloading[index] = true;
       notifyListeners();
-      Uri url = Uri.parse("http://192.168.18.168:7000/api/load_products");
+      Uri url = Uri.parse("http://teasoft.trafiqerp.in/api/load_products");
       // // SharedPreferences prefs = await SharedPreferences.getInstance();
       // // String? br_id1 = prefs.getString("br_id");
       Map body = {'cid': ""};
@@ -964,15 +985,15 @@ class Controller extends ChangeNotifier {
 
   registeration(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // prefs.setString("t_series", "AB");
-    prefs.setString("t_series", "CD");
+    prefs.setString("t_series", "AB");
+    // prefs.setString("t_series", "CD");
   }
 
   Future<UserModel?> getUserDetails(int index, String page) async {
     try {
       downloading[index] = true;
       notifyListeners();
-      Uri url = Uri.parse("http://192.168.18.168:7000/api/load_users");
+      Uri url = Uri.parse("http://teasoft.trafiqerp.in/api/load_users");
       // // SharedPreferences prefs = await SharedPreferences.getInstance();
       // // String? br_id1 = prefs.getString("br_id");
       Map body = {'cid': ""};

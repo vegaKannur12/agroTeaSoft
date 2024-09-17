@@ -15,6 +15,8 @@ class CollectionList extends StatefulWidget {
 
 class _CollectionListState extends State<CollectionList>
     with SingleTickerProviderStateMixin {
+
+    
   @override
   void initState() {
     super.initState();

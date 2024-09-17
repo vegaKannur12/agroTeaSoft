@@ -39,7 +39,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            child: Center(child: Text('TEA SUPPLY')),
+            child: Center(
+                child: Text(
+              'AGRO TEASOFT',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            )),
             decoration: BoxDecoration(
               color: Colors.lightGreen,
             ),
@@ -51,13 +55,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               onTap: () async {
                 if (index == 0) {
-                  
-  Provider.of<Controller>(context, listen: false).getProductsfromDB();
-    Provider.of<Controller>(context, listen: false).getRoute(" ", context);
+                  Provider.of<Controller>(context, listen: false)
+                      .getProductsfromDB();
+                  Provider.of<Controller>(context, listen: false)
+                      .getRoute(" ", context);
                   Navigator.of(context).push(
                     PageRouteBuilder(
                         opaque: false, // set to false
-                        pageBuilder: (_, __, ___) => CollectionPage(frompage: "direct")),
+                        pageBuilder: (_, __, ___) =>
+                            CollectionPage(frompage: "direct")),
                   );
                 } else if (index == 1) {
                   await Provider.of<Controller>(context, listen: false)
@@ -84,7 +90,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   Navigator.of(context).push(
                     PageRouteBuilder(
                         opaque: false, // set to false
-                        pageBuilder: (_, __, ___) => CollectionList(frompage: "drawer",)),
+                        pageBuilder: (_, __, ___) =>
+                            CollectionList(frompage: "drawer")),
                   );
                 } else if (index == 3) {
                   await Provider.of<Controller>(context, listen: false)
@@ -95,7 +102,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   Navigator.of(context).push(
                     PageRouteBuilder(
                         opaque: false, // set to false
-                        pageBuilder: (_, __, ___) => AdvanceList()),
+                        pageBuilder: (_, __, ___) =>
+                            AdvanceList(frompage: "drawer")),
                   );
                 }
                 // else if (index == 2) {

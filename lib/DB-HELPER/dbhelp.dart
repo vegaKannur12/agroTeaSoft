@@ -127,7 +127,8 @@ class TeaDB {
             adv_series TEXT,
             adv_date TEXT,
             adv_route_id TEXT,
-            adv_party_id TEXT,   
+            adv_party_id TEXT,
+            adv_party_name TEXT,
             adv_pay_mode TEXT,
             adv_pay_acc TEXT,
             adv_amt TEXT,
@@ -214,7 +215,7 @@ class TeaDB {
   Future insertAdvancetoDB(AdvanceModel adata) async {
     final db = await database;
     var query3 =
-        'INSERT INTO AdvanceTable(trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,log_date,status) VALUES(${adata.adv_trans_id}, "${adata.adv_series}", "${adata.adv_date}","${adata.adv_route_id}", "${adata.adv_party_id}", "${adata.adv_pay_mode}", "${adata.adv_pay_acc}", "${adata.adv_amt}", "${adata.adv_narration}", "${adata.adv_acc_date}","${adata.adv_import_id}","${adata.company_id}","${adata.branch_id}","${adata.log_date}",${adata.status})';
+        'INSERT INTO AdvanceTable(trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_party_name,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,log_date,status) VALUES(${adata.adv_trans_id}, "${adata.adv_series}", "${adata.adv_date}","${adata.adv_route_id}", "${adata.adv_party_id}","${adata.adv_party_name}", "${adata.adv_pay_mode}", "${adata.adv_pay_acc}", "${adata.adv_amt}", "${adata.adv_narration}", "${adata.adv_acc_date}","${adata.adv_import_id}","${adata.company_id}","${adata.branch_id}","${adata.log_date}",${adata.status})';
     var res = await db.rawInsert(query3);
     print(query3);
     print(res);
@@ -225,6 +226,12 @@ class TeaDB {
     List<Map<String, dynamic>> list = [];
     Database db = await instance.database;
     list = await db.rawQuery('SELECT rid,routename FROM routeDetailsTable');
+    return list;
+  }
+  Future<List<Map<String, dynamic>>> getRouteNamefromDB(int? rid) async {
+    List<Map<String, dynamic>> list = [];
+    Database db = await instance.database;
+    list = await db.rawQuery('SELECT routename FROM routeDetailsTable WHERE rid=$rid');
     return list;
   }
 
@@ -305,10 +312,10 @@ class TeaDB {
     Database db = await instance.database;
     if (conditn == "yes") {
       list = await db.rawQuery(
-          "SELECT trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable WHERE adv_import_id ='0'");
+          "SELECT trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_party_name,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable WHERE adv_import_id ='0'");
     } else {
       list = await db.rawQuery(
-          "SELECT trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable");
+          "SELECT trans_id,adv_series,adv_date,adv_route_id,adv_party_id,adv_party_name,adv_pay_mode,adv_pay_acc,adv_amt,adv_narration,adv_acc_date,adv_import_id,company_id,branch_id,status FROM AdvanceTable");
     }
     return list;
   }
